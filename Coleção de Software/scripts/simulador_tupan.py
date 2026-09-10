@@ -33,6 +33,22 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 # ============================================================
 # MODELO FÍSICO-ESTOCÁSTICO DO TUPAN
 # ============================================================
+def saturation_vapor_density(temp_c):
+    """Densidade de vapor d'água saturado (g/m³) via fórmula de Magnus."""
+    es = 6.1094 * math.exp((17.625 * temp_c) / (243.04 + temp_c))
+    return 216.7 * es / (temp_c + 273.15)
+
+
+def theoretical_output(hours, humidity, temperature, fan_flow, efficiency, coil_temperature):
+    """Produção teórica de água (litros) sem ruído estocástico."""
+    vapor_in = (humidity / 100.0) * saturation_vapor_density(temperature)
+    vapor_out = saturation_vapor_density(coil_temperature)
+    condensable = max(0.0, vapor_in - vapor_out)  # g/m³
+    air_volume_m3 = fan_flow * hours * 60.0 / 1000.0
+    water_g = condensable * air_volume_m3 * efficiency
+    return water_g / 1000.0
+
+
 class TupanModel:
     """
     Modelo físico-estocástico para simular a produção de água de um Tupan.
@@ -71,26 +87,18 @@ class TupanModel:
         if seed is not None:
             random.seed(seed)
 
-        # Capacidade de saturação de vapor (g/m³) via fórmula de Magnus
-        def saturation_vapor_density(temp_c):
-            a, b, c = 17.27, 237.7, 237.3
-            gamma = (a * temp_c) / (b + temp_c) + c
-            return 216.7 * math.exp(gamma) / (237.3 + temp_c)
-
-        vapor_in = saturation_vapor_density(p["temperature"])
-        vapor_out = saturation_vapor_density(p["coil_temperature"])
-        condensable = max(0.0, vapor_in - vapor_out)  # g/m³
-
-        # Volume de ar processado
-        air_volume = p["fan_flow"] * hours * 60.0  # litros
-        air_volume_m3 = air_volume / 1000.0
-
-        # Massa de água condensável
-        water_g = condensable * air_volume_m3 * p["efficiency"]
+        output_liters = theoretical_output(
+            hours,
+            p["relative_humidity"],
+            p["temperature"],
+            p["fan_flow"],
+            p["efficiency"],
+            p["coil_temperature"],
+        )
 
         # Ruído estocástico (simula turbulência, sujeira, variações)
         noise = random.uniform(-p["noise"], p["noise"])
-        output_liters = (water_g / 1000.0) * (1 + noise)
+        output_liters = output_liters * (1 + noise)
 
         return round(max(0.0, output_liters), 4)
 
@@ -117,7 +125,10 @@ class WaterProductionML:
     def predict(self, features):
         if not self.model:
             return None
-        X = self.poly.transform(features)
+        X = np.asarray(features, dtype=float)
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+        X = self.poly.transform(X)
         return float(self.regressor.predict(X)[0])
 
 
@@ -157,11 +168,8 @@ class EnvironmentSimulator:
         )
         targets = []
         for f in features:
-            temp, rh, pressure, fan, eff, coil = f
-            # Função física simplificada para gerar alvo realista
-            sat_in = 216.7 * math.exp((17.27 * temp) / (237.7 + temp) + 17.625) / (237.3 + temp)
-            sat_out = 216.7 * math.exp((17.27 * coil) / (237.7 + coil) + 17.625) / (237.3 + coil)
-            output = max(0.0, (sat_in - sat_out) * (fan * 60 / 1000) * eff * 0.001)
+            temperature, humidity, pressure, fan, eff, coil = f
+            output = theoretical_output(1.0, humidity, temperature, fan, eff, coil)
             targets.append(output)
         self.ml_model.train(features.tolist(), targets)
 
@@ -183,10 +191,12 @@ class EnvironmentSimulator:
     def run_cycle(self, hours=1.0):
         """
         Executa um ciclo de produção de água para todos os Tupans.
+        Os parâmetros do ambiente são propagados para cada modelo antes do cálculo.
         """
         p = self.environment
         results = []
         for tupan in self.tupans:
+            tupan["model"].params.update(p)
             seed = random.randint(1, 10**9)
             output = tupan["model"].calculate_output(hours=hours, seed=seed)
             tupan["output"] = output
@@ -241,16 +251,16 @@ def index():
 def api_environment():
     if request.method == "GET":
         return jsonify(simulator.environment)
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     simulator.update_environment(**data)
     return jsonify({"status": "ok", "environment": simulator.environment})
 
 
 @app.route("/api/tupans/add", methods=["POST"])
 def api_add_tupan():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     tupan = simulator.add_tupan(data.get("params"))
-    return jsonify({"status": "ok", "tupan": tupan}), 201
+    return jsonify({"status": "ok", "tupan": {"id": tupan["id"], "output": tupan["output"], "status": tupan["status"]}}), 201
 
 
 @app.route("/api/tupans/<int:tupan_id>/remove", methods=["DELETE"])
@@ -261,7 +271,7 @@ def api_remove_tupan(tupan_id):
 
 @app.route("/api/run", methods=["POST"])
 def api_run():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     hours = float(data.get("hours", 1.0))
     results = simulator.run_cycle(hours=hours)
     predictions = []
@@ -300,10 +310,8 @@ def api_ml_accuracy():
     )
     targets = []
     for f in features:
-        temp, rh, pressure, fan, eff, coil = f
-        sat_in = 216.7 * math.exp((17.27 * temp) / (237.7 + temp) + 17.625) / (237.3 + temp)
-        sat_out = 216.7 * math.exp((17.27 * coil) / (237.7 + coil) + 17.625) / (237.3 + coil)
-        targets.append(max(0.0, (sat_in - sat_out) * (fan * 60 / 1000) * eff * 0.001))
+        temperature, humidity, pressure, fan, eff, coil = f
+        targets.append(theoretical_output(1.0, humidity, temperature, fan, eff, coil))
     predictions = []
     for f in features:
         pred = simulator.ml_model.predict(f.tolist())

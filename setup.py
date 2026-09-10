@@ -18,6 +18,9 @@ setup(
         "Pillow>=9.0.0",
         "networkx>=2.8.0",
         "graphviz>=0.20.1",
+        "flask>=3.0",
+        "numpy>=1.24",
+        "scikit-learn>=1.3",
     ],
     python_requires=">=3.10",
     classifiers=[
