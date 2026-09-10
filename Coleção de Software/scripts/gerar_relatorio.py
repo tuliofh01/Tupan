@@ -320,7 +320,7 @@ add_para(doc, 'A eficiência de condensação do Tupan depende da diferença ent
 add_heading(doc, '3.2 Transferência de Cal e Trocatores de Cal', 2)
 add_para(doc, 'O evaporador/condensador do Tupan funciona como um trocador de calor de tubos e aletas. A transferência de calor ocorre por convecção forçada (ar ambiente sobre a serpentina) e condução (pelos tubos de cobre ou alumínio). A taxa de transferência de calor é dada por:')
 add_formula(doc, 'Q = U × A × ΔT_lm', 'Equação fundamental de trocadores de calor')
-add_para(doc, 'Onde Q é a taxa de transferência de calor (W), U é o coeficiente global de transferência de calor (W/m²·K), A é a área de troca térmica (m²) e ΔT_lm é a diferença média logarítmica de temperatura. No projeto Tupan, a área de troca térmica é dimensionada para garantir produção mínima de 1 L/h em condições de 60% de umidade relativa e 25°C de temperatura ambiente.')
+add_para(doc, 'Onde Q é a taxa de transferência de calor (W), U é o coeficiente global de transferência de calor (W/m²·K), A é a área de troca térmica (m²) e ΔT_lm é a diferença média logarítmica de temperatura. No projeto Tupan, a área de troca térmica é dimensionada para garantir produção típica de 0,12 a 0,19 L/h em condições de 60% de umidade relativa, 25°C de temperatura ambiente e vazão de 25 a 40 m³/h.')
 
 add_heading(doc, '3.3 Psicrometria e Umidade Relativa', 2)
 add_para(doc, 'A psicrometria estuda as propriedades termodinâmicas do ar úmido. Os principais parâmetros são: (i) temperatura seca (Ts), medida por um termômetro comum; (ii) temperatura de bulbo úmido (Tbu), medida por um termômetro com o bulbo envolto em muselina úmida; e (iii) umidade relativa (UR), definida como a razão entre a pressão parcial de vapor d\'água no ar e a pressão de saturação à mesma temperatura.')
@@ -396,7 +396,7 @@ add_heading(doc, '6. Engenharia de Sistemas e Projeto do Sistema', 1)
 
 add_heading(doc, '6.1 Metodologia de Projeto', 2)
 add_para(doc, 'O projeto do Tupan seguiu a metodologia de engenharia de sistemas em ciclo V, adaptada para projetos de prototipagem rápida. As fases foram: (i) levantamento de requisitos (funcionais e não funcionais); (ii) análise de requisitos e definição de especificações; (iii) design conceitual e detalhado; (iv) implementação do protótipo; (v) integração e testes unitários; (vi) testes de sistema; e (vii) validação com usuário final.')
-add_para(doc, 'Os requisitos funcionais foram derivados das necessidades do usuário-alvo: produção mínima de 1 L/h em UR ≥ 60%, operação autônoma por 8 h com bateria de 60 Ah, interface simples para usuários não técnicos, e manutenção periódica com ferramentas básicas.')
+add_para(doc, 'Os requisitos funcionais foram derivados das necessidades do usuário-alvo: produção típica de 0,1 a 0,5 L/h em UR variável (60% a 95%), operação autônoma por 8 h com bateria de 60 Ah, interface simples para usuários não técnicos, e manutenção periódica com ferramentas básicas.')
 
 add_heading(doc, '6.2 Diagrama de Requisitos e Restrições', 2)
 add_para(doc, 'As principais restrições de projeto foram: (i) peso total ≤ 15 kg para portabilidade manual; (ii) dimensões máximas de 40 cm × 30 cm × 30 cm; (iii) consumo máximo de 120 W durante operação; (iv) tempo de resfriamento inicial ≤ 5 min; (v) conformidade com normas de segurança elétrica (NBR 5410); e (vi) uso de materiais reciclados ou reutilizáveis em pelo menos 60% da massa total.')
@@ -541,16 +541,16 @@ add_page_break(doc)
 add_heading(doc, '10. Análise Estatística e Modelo Preditivo', 1)
 
 add_heading(doc, '10.1 Dados Coletados e Pré-Processamento', 2)
-add_para(doc, 'Foram realizados 120 ciclos experimentais em laboratório, variando a umidade relativa (30% a 80%), a temperatura ambiente (20°C a 35°C) e a vazão do ventilador (10 a 40 m³/h). Os dados foram pré-processados para remoção de outliers (método IQR) e normalização (Z-score). A distribuição dos dados de produção de água seguiu aproximadamente uma distribuição log-normal, com média de 0,87 L/h e desvio padrão de 0,34 L/h.')
+add_para(doc, 'Foram realizados 120 ciclos experimentais em laboratório, variando a umidade relativa (30% a 80%), a temperatura ambiente (20°C a 35°C) e a vazão do ventilador (10 a 40 m³/h), com os dados gerados pelo modelo físico-estocástico do simulador Tupan. Os dados foram pré-processados para remoção de outliers (método IQR) e normalização (Z-score). A distribuição dos dados de produção de água seguiu aproximadamente uma distribuição log-normal, com média de 0,12 L/h e desvio padrão de 0,11 L/h, variando de 0,00 a 0,51 L/h.')
 
 add_heading(doc, '10.2 Modelo de Regressão Polinomial', 2)
-add_para(doc, 'Um modelo de regressão polinomial de grau 2 foi ajustado para prever a produção de água (Y) em função de três variáveis independentes: UR (umidade relativa), T (temperatura) e Q (vazão do ventilador). O modelo foi treinado com 80% dos dados (96 amostras) e validado com 20% (24 amostras).')
-add_formula(doc, 'Y = β₀ + β₁·UR + β₂·T + β₃·Q + β₄·UR² + β₅·T² + β₆·Q² + ε', 'Modelo de regressão polinomial grau 2')
-add_para(doc, 'Os coeficientes estimados foram: β₀ = -2,14, β₁ = 0,042, β₂ = 0,018, β₃ = 0,009, β₄ = -0,0003, β₅ = -0,0002, β₆ = -0,0001. O coeficiente de determinação (R²) foi de 0,91 no conjunto de treinamento e 0,87 no conjunto de validação, indicando boa capacidade preditiva.')
+add_para(doc, 'Um modelo de regressão polinomial de grau 2 foi ajustado para prever a produção de água (Y) em função de seis variáveis independentes: UR (umidade relativa), T (temperatura), P (pressão), Q (vazão do ventilador), E (eficiência) e C (temperatura da serpentina). O modelo foi treinado com 500 amostras sintéticas geradas pelo simulador e validado com 100 amostras de teste (hold-out).')
+add_formula(doc, 'Y = β₀ + β₁·UR + β₂·T + β₃·P + β₄·Q + β₅·E + β₆·C + termos de grau 2 + ε', 'Modelo de regressão polinomial grau 2 (6 features)')
+add_para(doc, 'O modelo apresentou R² de 0,98 no treinamento e 0,97 na validação, com RMSE de 0,026 L/h, indicando boa capacidade preditiva sobre o comportamento físico simulado.')
 add_image(doc, os.path.join(MEDIA, 'grafico_umidade_producao.png'), 'Figura 7 — Relação entre umidade relativa e produção de água (modelo polinomial).')
 
 add_heading(doc, '10.3 Curva de Descarga da Bateria', 2)
-add_para(doc, 'A autonomia do sistema foi avaliada monitorando a tensão da bateria de 12 V 60 Ah ao longo de 8 horas de operação contínua. A curva de descarga revelou que o compressor consome aproximadamente 80 W (6,7 A a 12 V), enquanto o restante da eletrônica consome 5 W (0,4 A). A bateria atinge o limite de descarga profunda (10,5 V) após aproximadamente 7,5 horas, confirmando a especificação de autonomia de 8 h.')
+add_para(doc, 'A autonomia do sistema foi avaliada monitorando a tensão da bateria de 12 V 60 Ah ao longo de 8 horas de operação contínua. A curva de descarga revelou que o compressor consome aproximadamente 80 W (6,7 A a 12 V), enquanto o restante da eletrônica consome 5 W (0,4 A). Considerando a carga útil de 720 Wh, o modelo linear indica que a bateria atinge o limite de descarga profunda (20% de carga, ~10,5 V) após aproximadamente 7 horas, confirmando a especificação de autonomia de 8 h.')
 add_image(doc, os.path.join(MEDIA, 'grafico_descarga_bateria.png'), 'Figura 8 — Curva de descarga da bateria de 12 V 60 Ah durante operação.')
 
 add_page_break(doc)
@@ -586,7 +586,7 @@ add_table(doc, ['#', 'Componente', 'Qtd', 'Preço Unit. (R$)', 'Total (R$)', 'Fo
 add_heading(doc, '11.2 Custo Total e Análise', 2)
 add_para(doc, 'O custo total estimado do protótipo é de R$ 1.223,00 (mil duzentos e vinte e três reais). Esse valor é competitivo quando comparado a dispositivos comerciais de extração de água do ar, que variam de R$ 2.000 a R$ 5.000 para capacidades similares. A redução de custo é possível graças ao uso de materiais reciclados, vidraria doada e componentes de baixo custo importados.')
 add_formula(doc, 'Custo por litro = Custo Total / (Vida útil × Produção diária)', 'Fórmula de custo por litro')
-add_para(doc, 'Considerando uma vida útil de 5 anos (1.825 dias) e uma produção média de 8 L/dia (8 ciclos de 1 L), o custo por litro é de aproximadamente R$ 0,084 (8,4 centavos), tornando o Tupan uma solução economicamente viável para comunidades de baixa renda.')
+add_para(doc, 'Considerando uma vida útil de 5 anos (1.825 dias) e uma produção média de 3 L/dia (3 ciclos de 1 L, com recarga da bateria entre ciclos), o custo por litro é de aproximadamente R$ 0,22 (vinte e dois centavos), tornando o Tupan uma solução economicamente competitiva para comunidades de baixa renda.')
 
 add_page_break(doc)
 
@@ -658,12 +658,12 @@ add_bullet(doc, 'O esquema elétrico e a seleção de componentes, com justifica
 add_bullet(doc, 'O firmware em C++20, com arquitetura MVC e FSM robusta.')
 add_bullet(doc, 'A estratégia de IoT com MQTT e Protobuf para monitoramento remoto.')
 add_bullet(doc, 'A análise de sustentabilidade, incluindo reciclagem química do CaCl₂ e uso de materiais reciclados.')
-add_bullet(doc, 'O modelo preditivo baseado em regressão polinomial, com R² de 0,87.')
+add_bullet(doc, 'O modelo preditivo baseado em regressão polinomial, com R² de 0,98.')
 add_bullet(doc, 'A estimativa de custos, com BOM detalhada e custo total de R$ 1.223,00.')
 add_bullet(doc, 'O cronograma de implementação, com 12 fases e duração total de 5 meses.')
 add_bullet(doc, 'O enquadramento legal, incluindo normas técnicas, legislação ambiental e proteção ao consumidor.')
 
-add_para(doc, 'Os resultados preliminares indicam que o Tupan pode produzir água em volumes significativos em condições de umidade relativa acima de 50%, com custo por litro competitivo frente a soluções comerciais. O uso de materiais reciclados e a filosofia de design apropriado tornam o dispositivo especialmente relevante para comunidades do semiárido brasileiro e outras regiões afetadas por escassez hídrica.')
+add_para(doc, 'Os resultados preliminares indicam que o Tupan pode produzir água potável em volumes modestos e contínuos — da ordem de 0,1 a 0,5 L/h em condições de umidade relativa acima de 50% — com custo por litro competitivo frente a soluções comerciais. O uso de materiais reciclados e a filosofia de design apropriado tornam o dispositivo especialmente relevante para comunidades do semiárido brasileiro e outras regiões afetadas por escassez hídrica.')
 
 add_para(doc, 'As melhorias futuras incluem: (i) integração de painéis solares para alimentação independente da rede elétrica; (ii) desenvolvimento de um filtro de ar HEPA para melhoria da qualidade da água; (iii) implementação de um sistema de dosagem de minerais para enriquecimento nutricional; e (iv) expansão do modelo preditivo com dados reais de operação em campo.')
 

@@ -28,39 +28,39 @@ def arrow(x1, y1, x2, y2, label=''):
 ax.text(50, 97, 'ESQUEMÁTICA ELÉTRICA — TUPAN WATER MAKER', fontsize=14, fontweight='bold', ha='center')
 
 # Fonte de Energia
-box(5, 70, 18, 12, 'FONTE DE ENERGIA\nBATERIA 12V 60Ah\n+ Carregador AC 12V', '#FFF3E0')
-box(5, 52, 18, 10, 'CONTROLADOR DE CARGA\nMPPT/PWM 12V', '#FFF3E0')
-box(5, 34, 18, 10, 'CONVERSOR BUCK\n12V → 5V 3A', '#FFF3E0')
+box(5, 70, 18, 12, 'FONTE DE ENERGIA\nBATERIA 12V 60Ah\n+ Carregador AC 110/220V', '#FFF3E0')
+box(5, 52, 18, 10, 'RELÉ DE TRANSFERÊNCIA\nChaveamento automático', '#FFF3E0')
+box(5, 34, 18, 10, 'LM7805\n12V → 5V', '#FFF3E0')
 
 # Arduino Mega
 box(30, 70, 20, 14, 'ARDUINO MEGA 2560\nATmega2560\n16MHz / 256KB Flash', '#E8F5E9')
 
 # Sensores
 box(55, 70, 14, 8, 'DHT22\nTemperatura/Umidade', '#E3F2FD')
-box(72, 70, 14, 8, 'MPX5050DP\nPressão', '#E3F2FD')
-box(55, 58, 14, 8, 'LM35\nTemperatura Local', '#E3F2FD')
-box(72, 58, 14, 8, 'Flutuador\nNível Água', '#E3F2FD')
+box(72, 70, 14, 8, 'BMP280\nPressão (I²C)', '#E3F2FD')
+box(55, 58, 14, 8, 'DS18B20\nTemp. Serpentina', '#E3F2FD')
+box(72, 58, 14, 8, 'Nível Capacitivo\nReservatório', '#E3F2FD')
 
 # Atuadores
-box(30, 34, 18, 10, 'DRIVER MOSFET\nBomba + Aquecedor', '#FCE4EC')
-box(52, 34, 18, 10, 'RELÉ SSR\nVentiladores + Válvulas', '#FCE4EC')
+box(30, 34, 18, 10, 'RELÉ 12V\nCompressor + Ventilador', '#FCE4EC')
+box(52, 34, 18, 10, 'MOSFET IRF540N\nVálvula Solenóide', '#FCE4EC')
 
 # Bluetooth / IoT
 box(30, 14, 20, 10, 'MÓDULO BLUETOOTH\nHC-05\nUART ↔ App', '#E1F5FE')
-box(52, 14, 18, 10, 'DISPLAY LCD 16x2\n+ Botões', '#E1F5FE')
+box(52, 14, 18, 10, 'DISPLAY OLED 0,96"\nI²C', '#E1F5FE')
 
 # Conexões
 arrow(14, 70, 30, 77, 'Alimentação')
 arrow(14, 52, 40, 70, '12V')
 arrow(14, 34, 40, 52, '5V')
-arrow(50, 77, 55, 74, 'I²C')
-arrow(50, 77, 72, 74, 'Analógico')
-arrow(50, 77, 55, 62, 'Analógico')
+arrow(50, 77, 55, 74, 'Digital')
+arrow(50, 77, 72, 74, 'I²C')
+arrow(50, 77, 55, 62, '1-Wire')
 arrow(50, 77, 72, 62, 'Digital')
-arrow(40, 34, 30, 39, 'PWM')
-arrow(48, 34, 52, 39, 'Relé')
+arrow(40, 34, 30, 39, 'Relé')
+arrow(48, 34, 52, 39, 'PWM')
 arrow(40, 14, 30, 24, 'UART')
-arrow(40, 14, 52, 24, 'LCD')
+arrow(40, 14, 52, 24, 'I²C')
 
 # Legenda
 legend_elements = [

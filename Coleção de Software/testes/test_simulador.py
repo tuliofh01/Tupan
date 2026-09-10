@@ -280,6 +280,16 @@ class TestFlaskAPI:
         assert body["total_output"] >= 0.0
         assert body["predictions"][0]["actual"] == body["results"][0]["output_liters"]
 
+    def test_list_tupans_endpoint(self, _client):
+        resp = _client.get("/api/tupans")
+        assert resp.status_code == 200
+        assert resp.get_json()["tupans"] == []
+        _client.post("/api/tupans/add", json={})
+        resp = _client.get("/api/tupans")
+        assert len(resp.get_json()["tupans"]) == 1
+        body = resp.get_json()["tupans"][0]
+        assert set(body.keys()) == {"id", "output", "status"}
+
     def test_history_endpoint(self, _client):
         resp = _client.get("/api/history")
         assert resp.status_code == 200

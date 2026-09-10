@@ -72,7 +72,7 @@ def draw_uml_sequence():
         (50, 78, 61, 'JSON via\nUART'),
         (50, 61, 38, 'lerSensores()'),
         (50, 38, 38, 'processar()', 'Controller'),
-        (50, 38, 20, 'ativarBomba()'),
+        (50, 38, 20, 'ativarCompressor()\nativarValvula()'),
         (50, 20, 38, 'Feedback\nOK'),
         (50, 38, 61, 'enviarStatus()'),
         (50, 61, 78, 'JSON ativo'),
@@ -99,7 +99,7 @@ def draw_uml_class():
     ax.set_title('Diagrama de Classes — Arquitetura MVC C++20', fontsize=14, fontweight='bold')
 
     classes = [
-        ('«enum» SystemState\n{Idle, Collecting,\nCondensing, Storing,\nError}', (15, 75), '#E8F5E9'),
+        ('«enum» SystemState\n{IDLE, INIT, COOLING,\nCONDENSING, FULL,\nERROR, MAINTENANCE}', (15, 75), '#E8F5E9'),
         ('«struct» SensorData\nfloat temp\nfloat humidity\nfloat pressure\nuint32_t timestamp', (50, 80), '#E3F2FD'),
         ('«struct» SystemConfig\nfloat tempThreshold\nfloat humidityThreshold\nuint16_t cycleDuration', (80, 80), '#FFF3E0'),
         ('Model', (15, 55), '#E8F5E9'),
@@ -148,11 +148,12 @@ def draw_firmware_flowchart():
 
     states = [
         ('Início\nsetup()', (50, 95), '#E8F5E9'),
-        ('Idle\nAguardando', (50, 78), '#E3F2FD'),
-        ('Ler Sensores\n(DHT22, LM35)', (50, 64), '#E3F2FD'),
-        ('Decisão:\nThresholds?', (50, 50), '#FFF3E0'),
-        ('Condensing\nAtivar SSR + Aquecedor', (50, 36), '#FCE4EC'),
-        ('Storing\nBomba Ativa', (50, 22), '#FCE4EC'),
+        ('IDLE\nAguardando', (50, 80), '#E3F2FD'),
+        ('INIT\nLer Sensores\n(DHT22, DS18B20,\nBMP280)', (50, 66), '#E3F2FD'),
+        ('COOLING\nResfriar Serpentina\n(Relé Compressor)', (50, 52), '#FFF3E0'),
+        ('CONDENSING\nRelé + Válvula\nSolenóide (PWM)', (50, 38), '#FCE4EC'),
+        ('FULL\nReservatório Cheio', (50, 24), '#FCE4EC'),
+        ('ERROR / MAINTENANCE\nFalha detectada', (50, 12), '#FFEBEE'),
     ]
     for label, (x, y), color in states:
         ax.text(x, y, label, fontsize=9, ha='center', va='center',
@@ -165,17 +166,17 @@ def draw_firmware_flowchart():
         ax.annotate('', xy=(x2, y2+5), xytext=(x1, y1-5),
                      arrowprops=dict(arrowstyle='->', lw=1.5, color='#333'))
 
-    # Loop back: Decisão → Idle (não atendeu)
-    ax.annotate('', xy=(50, 78), xytext=(50, 50),
+    # Loop back: COOLING → IDLE (thresholds não atendidos)
+    ax.annotate('', xy=(50, 80), xytext=(50, 52),
                 arrowprops=dict(arrowstyle='->', lw=1, color='#888', linestyle='--',
                                connectionstyle='arc3,rad=-0.2'))
-    ax.text(62, 64, 'Nenhuma\ncondição', fontsize=7, ha='center', color='#888')
+    ax.text(64, 66, 'Condições\nnão atendidas', fontsize=7, ha='center', color='#888')
 
-    # Loop back: Storing → Idle (ciclo completo)
-    ax.annotate('', xy=(50, 78), xytext=(50, 22),
+    # Loop back: FULL → IDLE (ciclo completo / esvaziamento)
+    ax.annotate('', xy=(50, 80), xytext=(50, 24),
                 arrowprops=dict(arrowstyle='->', lw=1, color='#888', linestyle='--',
                                connectionstyle='arc3,rad=-0.5'))
-    ax.text(65, 50, 'Ciclo\ncompleto', fontsize=7, ha='center', color='#888')
+    ax.text(66, 52, 'Esvaziamento\nconcluído', fontsize=7, ha='center', color='#888')
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUT, 'fluxograma_firmware.png'), dpi=150)

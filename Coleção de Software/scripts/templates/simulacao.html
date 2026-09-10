@@ -129,11 +129,11 @@
                         <input type="number" id="env_pressure" value="1013" min="900" max="1100" step="1">
                     </div>
                     <div class="param-item">
-                        <label>Vazão do Fan (L/min)</label>
-                        <input type="number" id="env_fan" value="25" min="5" max="50" step="1">
+                        <label>Vazão do Fan (m³/h)</label>
+                        <input type="number" id="env_fan" value="25" min="5" max="60" step="1">
                     </div>
                     <div class="param-item">
-                        <label>Eficiência (%)</label>
+                        <label>Eficiência (0–1)</label>
                         <input type="number" id="env_eff" value="0.85" min="0.1" max="1.0" step="0.05">
                     </div>
                     <div class="param-item">
@@ -245,10 +245,12 @@
         }
 
         async function clearTupans() {
-            for (const t of await api('/api/tupans')) { /* no-op */ }
-            // Remove all tupans via individual deletes
-            // Since we don't have a list endpoint, simulate
-            location.reload();
+            const { tupans } = await api('/api/tupans');
+            for (const t of tupans) {
+                await api(`/api/tupans/${t.id}/remove`, 'DELETE');
+            }
+            loadTupans();
+            loadHistory();
         }
 
         async function loadTupans() {
@@ -266,35 +268,29 @@
             document.getElementById('ml-accuracy').innerHTML =
                 `RMSE: <strong>${ml.rmse}</strong> · R²: <strong>${ml.r2}</strong>`;
 
-            // Re-render tupans (using a simple approach)
-            // Since we don't have a GET /api/tupans, we'll use the history
-            const history = await api('/api/history');
-            const uniqueTupans = new Map();
-            for (const h of history) {
-                if (!uniqueTupans.has(h.output)) {
-                    uniqueTupans.set(h.output, h);
-                }
-            }
+            // Render real tupans via GET /api/tupans
+            const { tupans } = await api('/api/tupans');
             const container = document.getElementById('tupan-container');
-            if (history.length === 0) {
+            if (tupans.length === 0) {
                 container.innerHTML = '<div class="empty-state">Nenhum Tupan adicionado. Clique "+ Adicionar Tupan" para começar.</div>';
                 return;
             }
-            let html = '';
-            // Generate from last run if available
-            const lastRun = history.slice(-1)[0];
-            html += `<div class="tupan-card online">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span class="tupan-id">Tupan #1</span>
-                    <span class="tupan-status status-online">Online</span>
+            container.innerHTML = tupans.map(t => `
+                <div class="tupan-card ${t.status}">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="tupan-id">Tupan #${t.id}</span>
+                        <span class="tupan-status status-${t.status}">${t.status}</span>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <p style="color:#aaa;font-size:0.85em;">Parâmetros: UR ${env.relative_humidity}% · Temp ${env.temperature}°C · Fan ${env.fan_flow} m³/h</p>
+                    </div>
+                    <div class="output-display">${t.output.toFixed(4)} L</div>
+                    <div class="prediction">Saída do último ciclo</div>
+                    <div style="text-align:right;margin-top:8px;">
+                        <button class="btn btn-danger" onclick="removeTupan(${t.id})">Remover</button>
+                    </div>
                 </div>
-                <div style="margin-top:10px;">
-                    <p style="color:#aaa;font-size:0.85em;">Parâmetros: UR ${env.relative_humidity}% · Temp ${env.temperature}°C · Fan ${env.fan_flow} L/min</p>
-                </div>
-                <div class="output-display">${lastRun.output.toFixed(4)} L</div>
-                <div class="prediction">Saída do ciclo</div>
-            </div>`;
-            container.innerHTML = html;
+            `).join('');
         }
 
         async function loadHistory() {

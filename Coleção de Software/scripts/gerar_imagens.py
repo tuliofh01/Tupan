@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+from simulador_tupan import theoretical_output
 
 OUT = '/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/Documentação Oficial/Arquivo de Mídia'
 os.makedirs(OUT, exist_ok=True)
@@ -19,15 +24,21 @@ img.save(os.path.join(OUT, 'projSketch_melhorada.jpg'), quality=95)
 print('Imagem melhorada salva.')
 
 # 2. Gráfico de descarga da bateria
+# Carga total 720 Wh; operação nominal 85 W (compressor 80 W + eletrônica 5 W) -> ~7,5 h até 10,5 V
+# Modo Eco: 5 W sobre a eletrônica -> tempo muito maior até descarga profunda
 fig, ax = plt.subplots(figsize=(8, 5))
 t = np.linspace(0, 24, 200)
+capacity_wh = 720.0
+p_oper = 85.0      # 80 W compressor + 5 W eletrônica
+p_eco = 5.0
+limit = 20.0       # limite seguro de descarga (10,5 V)
 levels = {
-    'Bateria 12V 60Ah (720Wh)': 100 * np.exp(-t / 20.5),
-    'Modo Eco (5W)': 100 * np.exp(-t / 144),
+    'Operação normal (85W)': 100 - 100 * (p_oper * t) / capacity_wh,
+    'Modo Eco (5W)': 100 - 100 * (p_eco * t) / capacity_wh,
 }
 for label, y in levels.items():
     ax.plot(t, y, linewidth=2, label=label)
-ax.axhline(20, color='red', linestyle='--', alpha=0.6, label='Limite seguro (20%)')
+ax.axhline(limit, color='red', linestyle='--', alpha=0.6, label=f'Limite seguro ({limit:.0f}%)')
 ax.set_xlabel('Tempo (horas)')
 ax.set_ylabel('Carga da bateria (%)')
 ax.set_title('Curva de Descarga — Sistema de Energia Dual')
@@ -37,18 +48,18 @@ plt.tight_layout()
 plt.savefig(os.path.join(OUT, 'grafico_descarga_bateria.png'), dpi=150)
 plt.close()
 
-# 3. Gráfico de regressão Umidade × Produção de Água
+# 3. Gráfico de regressão Umidade × Produção de Água (modelo físico real)
 fig, ax = plt.subplots(figsize=(8, 5))
-hum = np.array([40, 45, 50, 55, 60, 65, 70, 75, 80, 85])
-prod = np.array([60, 75, 90, 105, 120, 135, 150, 165, 180, 195])
+hum = np.arange(40, 86, 5)
+prod = np.array([theoretical_output(1.0, h, 30, 25, 0.85, 8) for h in hum])
 coef = np.polyfit(hum, prod, 1)
 x = np.linspace(40, 85, 100)
 y = coef[0] * x + coef[1]
-ax.scatter(hum, prod, color='#1565C0', label='Dados simulados')
+ax.scatter(hum, prod, color='#1565C0', label='Modelo físico (simulação)')
 ax.plot(x, y, color='#E65100', linestyle='--', label='Regressão linear')
 ax.set_xlabel('Umidade Relativa do Ar (%)')
-ax.set_ylabel('Produção de Água (mL/24h)')
-ax.set_title('Correlação entre Umidade e Produção de Água')
+ax.set_ylabel('Produção de Água (L/h)')
+ax.set_title('Correlação entre Umidade e Produção de Água (T=30°C, 25 m³/h)')
 ax.grid(True, alpha=0.3)
 ax.legend()
 plt.tight_layout()
@@ -89,10 +100,10 @@ nodes = [
     ('Tomada 110/220V', (0.2, 0.95), '#FFF3E0'),
     ('Carregador AC 12V', (0.2, 0.82), '#FFF3E0'),
     ('Bateria 12V 60Ah', (0.2, 0.69), '#FFF3E0'),
-    ('Controlador MPPT/PWM', (0.2, 0.56), '#FFF3E0'),
-    ('Conversor Buck 12V→5V', (0.2, 0.43), '#FFF3E0'),
+    ('Relé de Transferência', (0.2, 0.56), '#FFF3E0'),
+    ('LM7805 (12V→5V)', (0.2, 0.43), '#FFF3E0'),
     ('Arduino Mega + Sensores', (0.55, 0.43), '#E8F5E9'),
-    ('Atuadores (Fan, Bomba, Aquecedor)', (0.55, 0.30), '#FCE4EC'),
+    ('Atuadores (Compressor,\nVentilador, Válvula)', (0.55, 0.30), '#FCE4EC'),
     ('App Mobile / Dashboard', (0.85, 0.43), '#E1F5FE'),
 ]
 for label, (x, y), color in nodes:

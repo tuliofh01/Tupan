@@ -188,7 +188,7 @@ set_bg(slide, BRANCO)
 add_title(slide, "ENERGIA", "Autonomia para levar água a qualquer lugar")
 add_image(slide, os.path.join(MEDIA, "grafico_descarga_bateria.png"), 0.6, 1.8, 6.0)
 add_text(slide, "Dual Power", 7.1, 1.9, 5.0, 0.5, size=22, color=AZUL, bold=True)
-add_rect(slide, "BATERIA 12V 60Ah\n~20h de operação", 7.1, 2.6, 4.8, 1.0, AZUL_CLARO, AZUL, size=18)
+add_rect(slide, "BATERIA 12V 60Ah\n~8h de operação", 7.1, 2.6, 4.8, 1.0, AZUL_CLARO, AZUL, size=18)
 add_rect(slide, "TOMADA 110/220V\nuso contínuo", 7.1, 3.9, 4.8, 1.0, VERDE_CLARO, VERDE, size=18)
 add_rect(slide, "MODO ECO\naté 6 dias em standby", 7.1, 5.2, 4.8, 1.0, LARANJA_CLARO, LARANJA, size=18)
 add_footer(slide, 6)
@@ -231,9 +231,9 @@ slide = prs.slides.add_slide(prs.slide_layouts[6])
 set_bg(slide, BRANCO)
 add_title(slide, "MODELO DE VALOR", "Por que o Tupan é competitivo")
 metrics = [
-    ("R$ 180", "custo estimado", LARANJA),
+    ("R$ 1.223", "custo do protótipo", LARANJA),
     ("60%", "material reciclado", VERDE),
-    ("20h", "autonomia em bateria", AZUL),
+    ("8h", "autonomia em bateria", AZUL),
     ("0", "emissões locais", AZUL_MEDIO),
 ]
 for i, (val, label, color) in enumerate(metrics):

@@ -40,11 +40,14 @@ def saturation_vapor_density(temp_c):
 
 
 def theoretical_output(hours, humidity, temperature, fan_flow, efficiency, coil_temperature):
-    """Produção teórica de água (litros) sem ruído estocástico."""
+    """Produção teórica de água (litros) sem ruído estocástico.
+
+    fan_flow é dado em m³/h (unidade padrão de vazão de ventiladores de AWG).
+    """
     vapor_in = (humidity / 100.0) * saturation_vapor_density(temperature)
     vapor_out = saturation_vapor_density(coil_temperature)
     condensable = max(0.0, vapor_in - vapor_out)  # g/m³
-    air_volume_m3 = fan_flow * hours * 60.0 / 1000.0
+    air_volume_m3 = fan_flow * hours
     water_g = condensable * air_volume_m3 * efficiency
     return water_g / 1000.0
 
@@ -56,8 +59,8 @@ class TupanModel:
     - Umidade relativa do ar (%)
     - Temperatura (°C)
     - Pressão atmosférica (hPa)
-    - Vazão do ventilador (L/min)
-    - Eficiência do sistema (%)
+    - Vazão do ventilador (m³/h)
+    - Eficiência do sistema (fração 0-1)
     - Temperatura da serpentina (°C)
     """
 
@@ -66,8 +69,8 @@ class TupanModel:
             "relative_humidity": 60.0,   # %
             "temperature": 28.0,         # °C
             "pressure": 1013.0,          # hPa
-            "fan_flow": 25.0,            # L/min
-            "efficiency": 0.85,          # %
+            "fan_flow": 25.0,            # m³/h
+            "efficiency": 0.85,          # fração (0-1)
             "coil_temperature": 8.0,     # °C
             "noise": 0.05,               # ruído estocástico
         }
@@ -79,9 +82,9 @@ class TupanModel:
         Calcula o volume de água produzido em litros.
 
         Fórmula simplificada baseada na capacidade de retenção de vapor:
-        - Ar a 30°C e 100% UR retém ~27 g/m³ de vapor
+        - Ar a 30°C e 100% UR retém ~30 g/m³ de vapor
         - Ar a 10°C retém ~9 g/m³
-        - Diferença = 18 g/m³ condensável
+        - Diferença = 21 g/m³ condensável
         """
         p = self.params
         if seed is not None:
@@ -168,7 +171,7 @@ class EnvironmentSimulator:
         )
         targets = []
         for f in features:
-            temperature, humidity, pressure, fan, eff, coil = f
+            humidity, temperature, pressure, fan, eff, coil = f
             output = theoretical_output(1.0, humidity, temperature, fan, eff, coil)
             targets.append(output)
         self.ml_model.train(features.tolist(), targets)
@@ -256,6 +259,15 @@ def api_environment():
     return jsonify({"status": "ok", "environment": simulator.environment})
 
 
+@app.route("/api/tupans", methods=["GET"])
+def api_list_tupans():
+    tupans = [
+        {"id": t["id"], "output": round(t["output"], 4), "status": t["status"]}
+        for t in simulator.tupans
+    ]
+    return jsonify({"tupans": tupans})
+
+
 @app.route("/api/tupans/add", methods=["POST"])
 def api_add_tupan():
     data = request.get_json(silent=True) or {}
@@ -310,7 +322,7 @@ def api_ml_accuracy():
     )
     targets = []
     for f in features:
-        temperature, humidity, pressure, fan, eff, coil = f
+        humidity, temperature, pressure, fan, eff, coil = f
         targets.append(theoretical_output(1.0, humidity, temperature, fan, eff, coil))
     predictions = []
     for f in features:
