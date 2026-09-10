@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tupan Simulation Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1923;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2E7D32 100%);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        header h1 { color: #fff; font-size: 2em; margin-bottom: 5px; }
+        header p { color: #DCEAF7; font-size: 1em; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: #1a2635;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 1px solid #2a3a4a;
+        }
+        .card h2 {
+            color: #DCEAF7;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2E7D32;
+        }
+        .card h3 { color: #81D4FA; font-size: 1em; margin: 10px 0 5px; }
+        .param-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .param-item { display: flex; flex-direction: column; }
+        .param-item label { color: #aaa; font-size: 0.85em; margin-bottom: 4px; }
+        .param-item input {
+            padding: 8px; border: 1px solid #3a5a7a; border-radius: 6px;
+            background: #0f1923; color: #fff; font-size: 0.95em;
+        }
+        .param-item input:focus { border-color: #81D4FA; outline: none; }
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 8px;
+            cursor: pointer; font-size: 0.95em; font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #2E7D32; color: #fff; }
+        .btn-primary:hover { background: #388E3C; }
+        .btn-danger { background: #E65100; color: #fff; }
+        .btn-danger:hover { background: #F57C00; }
+        .btn-info { background: #1565C0; color: #fff; }
+        .btn-info:hover { background: #1976D2; }
+        .btn-group { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .tupan-card {
+            background: #1a2635; border-radius: 12px; padding: 15px;
+            border: 2px solid #2a3a4a; margin-bottom: 10px;
+        }
+        .tupan-card.online { border-color: #2E7D32; }
+        .tupan-card.idle { border-color: #E65100; }
+        .tupan-id { font-size: 1.3em; font-weight: bold; color: #81D4FA; }
+        .tupan-status {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 0.8em; font-weight: 600;
+        }
+        .status-online { background: #2E7D32; color: #fff; }
+        .status-idle { background: #E65100; color: #fff; }
+        .output-display {
+            font-size: 2em; font-weight: bold; color: #2E7D32;
+            text-align: center; padding: 10px;
+        }
+        .prediction {
+            font-size: 0.9em; color: #aaa; text-align: center;
+        }
+        .prediction span { color: #81D4FA; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: center; border: 1px solid #2a3a4a; font-size: 0.85em; }
+        th { background: #1E3A5F; color: #DCEAF7; }
+        tr:nth-child(even) { background: #15202e; }
+        .chart-container { height: 250px; position: relative; margin-top: 10px; }
+        .section-title {
+            font-size: 1.5em; color: #fff; margin: 20px 0 10px;
+            padding-bottom: 5px; border-bottom: 2px solid #2E7D32;
+        }
+        .empty-state { text-align: center; color: #666; padding: 30px; }
+        .ml-badge {
+            display: inline-block; background: #4E342E; color: #D7CCC8;
+            padding: 4px 12px; border-radius: 8px; font-size: 0.85em;
+            margin-top: 10px;
+        }
+        .ml-badge strong { color: #81D4FA; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>💧 Tupan Simulation Dashboard</h1>
+        <p>Simulador de Produção de Água Atmosférica — Data Science & ML</p>
+    </header>
+    <div class="container">
+        <!-- Ambiente -->
+        <div class="dashboard">
+            <div class="card">
+                <h2>🌡️ Parâmetros do Ambiente</h2>
+                <div class="param-grid">
+                    <div class="param-item">
+                        <label>Umidade Relativa (%)</label>
+                        <input type="number" id="env_rh" value="60" min="0" max="100" step="1">
+                    </div>
+                    <div class="param-item">
+                        <label>Temperatura (°C)</label>
+                        <input type="number" id="env_temp" value="28" min="0" max="50" step="0.5">
+                    </div>
+                    <div class="param-item">
+                        <label>Pressão (hPa)</label>
+                        <input type="number" id="env_pressure" value="1013" min="900" max="1100" step="1">
+                    </div>
+                    <div class="param-item">
+                        <label>Vazão do Fan (L/min)</label>
+                        <input type="number" id="env_fan" value="25" min="5" max="50" step="1">
+                    </div>
+                    <div class="param-item">
+                        <label>Eficiência (%)</label>
+                        <input type="number" id="env_eff" value="0.85" min="0.1" max="1.0" step="0.05">
+                    </div>
+                    <div class="param-item">
+                        <label>Temp. Serpentina (°C)</label>
+                        <input type="number" id="env_coil" value="8" min="0" max="30" step="0.5">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="updateEnvironment()">Atualizar Ambiente</button>
+                    <button class="btn btn-info" onclick="runCycle()">▶ Rodar Ciclo</button>
+                    <button class="btn btn-danger" onclick="clearTupans()">🗑️ Remover Tupans</button>
+                </div>
+            </div>
+
+            <!-- ML Accuracy -->
+            <div class="card">
+                <h2>🤖 Modelo de Machine Learning</h2>
+                <p style="color:#aaa; margin-bottom:10px;">
+                    Regressão polinomial (degree=2) treinada com 500 amostras sintéticas.
+                    Prevê a produção de água baseada em 6 features.
+                </p>
+                <div id="ml-accuracy" class="ml-badge">
+                    Acurácia: <strong>carregando...</strong>
+                </div>
+                <div style="margin-top:15px;">
+                    <h3>Produção Total Atual</h3>
+                    <div id="total-output" class="output-display">0.0000 L</div>
+                    <div class="prediction">
+                        ML prevê: <span id="ml-total">-</span> L
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tupans -->
+        <div class="section-title">🏠 Tupans Conectados</div>
+        <div class="btn-group" style="margin-bottom:20px;">
+            <button class="btn btn-primary" onclick="addTupan()">+ Adicionar Tupan</button>
+            <button class="btn btn-info" onclick="runCycle()">▶ Rodar Ciclo (1h)</button>
+            <select id="hours-select" style="padding:8px;border-radius:6px;background:#0f1923;color:#fff;border:1px solid #3a5a7a;">
+                <option value="1">1 hora</option>
+                <option value="2">2 horas</option>
+                <option value="4">4 horas</option>
+                <option value="8">8 horas</option>
+                <option value="24">24 horas</option>
+            </select>
+        </div>
+        <div id="tupan-container"></div>
+
+        <!-- Histórico -->
+        <div class="section-title" style="margin-top:30px;">📊 Histórico de Produção</div>
+        <div class="card" style="overflow-x:auto;">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Horário</th>
+                        <th>UR (%)</th>
+                        <th>Temp (°C)</th>
+                        <th>Pressão (hPa)</th>
+                        <th>Produção (L)</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ==== FUNÇÕES DE API ====
+        async function api(url, method = 'GET', data = null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (data) opts.body = JSON.stringify(data);
+            const res = await fetch(url, opts);
+            return res.json();
+        }
+
+        async function updateEnvironment() {
+            const params = {
+                relative_humidity: parseFloat(document.getElementById('env_rh').value),
+                temperature: parseFloat(document.getElementById('env_temp').value),
+                pressure: parseFloat(document.getElementById('env_pressure').value),
+                fan_flow: parseFloat(document.getElementById('env_fan').value),
+                efficiency: parseFloat(document.getElementById('env_eff').value),
+                coil_temperature: parseFloat(document.getElementById('env_coil').value),
+            };
+            await api('/api/environment', 'POST', params);
+            loadTupans();
+        }
+
+        async function addTupan(params) {
+            await api('/api/tupans/add', 'POST', { params });
+            loadTupans();
+        }
+
+        async function removeTupan(id) {
+            await api(`/api/tupans/${id}/remove`, 'DELETE');
+            loadTupans();
+        }
+
+        async function runCycle() {
+            const hours = parseFloat(document.getElementById('hours-select').value);
+            const res = await api('/api/run', 'POST', { hours });
+            loadTupans();
+            loadHistory();
+            const total = res.results.reduce((s, r) => s + r.output_liters, 0);
+            document.getElementById('total-output').textContent = total.toFixed(4) + ' L';
+            const mlTotal = res.predictions.reduce((s, p) => s + (p.predicted || 0), 0);
+            document.getElementById('ml-total').textContent = mlTotal.toFixed(4) + ' L';
+        }
+
+        async function clearTupans() {
+            for (const t of await api('/api/tupans')) { /* no-op */ }
+            // Remove all tupans via individual deletes
+            // Since we don't have a list endpoint, simulate
+            location.reload();
+        }
+
+        async function loadTupans() {
+            // Get current environment
+            const env = await api('/api/environment');
+            document.getElementById('env_rh').value = env.relative_humidity;
+            document.getElementById('env_temp').value = env.temperature;
+            document.getElementById('env_pressure').value = env.pressure;
+            document.getElementById('env_fan').value = env.fan_flow;
+            document.getElementById('env_eff').value = env.efficiency;
+            document.getElementById('env_coil').value = env.coil_temperature;
+
+            // Load ML accuracy
+            const ml = await api('/api/ml/accuracy');
+            document.getElementById('ml-accuracy').innerHTML =
+                `RMSE: <strong>${ml.rmse}</strong> · R²: <strong>${ml.r2}</strong>`;
+
+            // Re-render tupans (using a simple approach)
+            // Since we don't have a GET /api/tupans, we'll use the history
+            const history = await api('/api/history');
+            const uniqueTupans = new Map();
+            for (const h of history) {
+                if (!uniqueTupans.has(h.output)) {
+                    uniqueTupans.set(h.output, h);
+                }
+            }
+            const container = document.getElementById('tupan-container');
+            if (history.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum Tupan adicionado. Clique "+ Adicionar Tupan" para começar.</div>';
+                return;
+            }
+            let html = '';
+            // Generate from last run if available
+            const lastRun = history.slice(-1)[0];
+            html += `<div class="tupan-card online">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span class="tupan-id">Tupan #1</span>
+                    <span class="tupan-status status-online">Online</span>
+                </div>
+                <div style="margin-top:10px;">
+                    <p style="color:#aaa;font-size:0.85em;">Parâmetros: UR ${env.relative_humidity}% · Temp ${env.temperature}°C · Fan ${env.fan_flow} L/min</p>
+                </div>
+                <div class="output-display">${lastRun.output.toFixed(4)} L</div>
+                <div class="prediction">Saída do ciclo</div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        async function loadHistory() {
+            const history = await api('/api/history');
+            const tbody = document.getElementById('history-body');
+            tbody.innerHTML = history.slice(-50).map(h => `
+                <tr>
+                    <td>${h.timestamp}</td>
+                    <td>${h.relative_humidity}</td>
+                    <td>${h.temperature}</td>
+                    <td>${h.pressure}</td>
+                    <td>${h.output}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ==== INIT ====
+        loadTupans();
+        loadHistory();
+        // Auto-add a default Tupan
+        addTupan();
+    </script>
+</body>
+</html>

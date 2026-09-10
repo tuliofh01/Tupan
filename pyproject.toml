@@ -1,0 +1,50 @@
+# Tupan Water Maker - Python Environment Configuration
+# Install dependencies with: pip install -r requirements.txt
+# Or install in development mode: pip install -e .
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tupan-water-maker"
+version = "0.1.0"
+description = "Portable atmospheric water generator - academic project"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Academic-Only"}
+authors = [
+    {name = "Túlio Ferreira Horta", email = "tulio.horta@pucmg.edu.br"}
+]
+dependencies = [
+    "python-docx>=0.8.11",
+    "matplotlib>=3.5.0",
+    "python-pptx>=0.6.23",
+    "Pillow>=9.0.0",
+    "networkx>=2.8.0",
+    "graphviz>=0.20.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=22.0",
+    "flake8>=5.0",
+    "mypy>=1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["Coleção de Software*"]
+exclude = ["tests*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312', 'py314']
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["Coleção de Software/testes"]
