@@ -1,12 +1,12 @@
-# Tupan Water Maker
+# Tupan, Máquina de Chuva
 
-[![Read in English](https://img.shields.io/badge/EN-English-blue.svg)](README.md)
+[![Read in English](https://img.shields.io/badge/EN-English-blue.svg)](../../README.md)
 
 Gerador portátil de água atmosférica projetado para hidratação individual/em pequena escala em ambientes com escassez hídrica. O projeto combina microeletrônica (Arduino Mega), projeto de circuitos analógico-digitais, engenharia de sistemas e conectividade IoT.
 
 ## Origem do Projeto
 
-O **Tupan Water Maker** foi concebido como projeto acadêmico para a disciplina **IoT & PLCs** da **PUC-MG** (Pontifícia Universidade Católica de Minas Gerais), Curso de Engenharia de Computação, semestre **2026.2**, por **Túlio Ferreira Horta**.
+O **Tupan, Máquina de Chuva** (anteriormente "Tupan Water Maker") foi concebido como projeto acadêmico para a disciplina **IoT & PLCs** da **PUC-MG** (Pontifícia Universidade Católica de Minas Gerais), Curso de Engenharia de Computação, semestre **2026.2**, por **Túlio Ferreira Horta**.
 
 A ideia surgiu de uma preocupação compartilhada: a **escassez de água**. No semiárido brasileiro — onde vivem mais de 30 milhões de pessoas — os ciclos de seca são recorrentes e devastadores. Famílias dependem de caminhões-pipa, cisternas e aquíferos cada vez mais pressionados. O projeto explora se a tecnologia pode oferecer um **complemento descentralizado e de baixo custo** à infraestrutura existente.
 
@@ -27,17 +27,21 @@ Este README, no entanto, está em **inglês** para tornar o projeto acessível a
 
 ```
 Tupan Water Maker/
-├── Documentação Oficial/          # Entregáveis oficiais
-│   ├── relatórioDescritivo.docx  # Relatório técnico (PT-BR)
-│   ├── Arquivo de Mídia/          # Imagens, gráficos, diagramas
-│   └── Arquivos CAD/              # UML, esquemáticos, fluxogramas
-├── Coleção de Software/           # Código-fonte e scripts
-│   ├── scripts/                   # Scripts de geração
-│   ├── firmware/                  # Firmware MVC em C++20
-│   ├── docs/                      # Documentação
-│   ├── testes/                    # Planos de teste
-│   └── recursos/                  # Recursos
-└── Tupan_Water_Maker_Pitch.pptx   # Apresentação de pitch
+├── README.md
+├── Documentação Oficial/            # Entregáveis oficiais
+│   ├── relatórioDescritivo.docx    # Relatório técnico (PT-BR)
+│   ├── apresentaçãoProduto.pptx    # Apresentação de pitch
+│   ├── Arquivo de Mídia/           # Imagens, gráficos, diagramas (+ fontes/)
+│   └── Arquivos CAD/               # UML, esquemáticos, CAD (DXF/SVG/STL, + fontes/)
+└── Coleção de Software/             # Código-fonte
+    ├── docs/                       # README_PT-BR.md
+    └── scripts/                    # TODO Python: geradores, simulador, CAD, testes
+        ├── testes/                 # Testes unitários (pytest)
+        ├── templates/              # Interface web do simulador (Flask)
+        ├── dist/                   # Simulador nativo C++20/pybind11 + builds
+        ├── requirements.txt
+        ├── setup.py
+        └── pyproject.toml
 ```
 
 ## Principais Destaques Técnicos
@@ -51,7 +55,7 @@ Tupan Water Maker/
 | **Sensores** | DHT22 (temp/umidade), DS18B20, BMP280, sensor de nível |
 | **Atuadores** | Ventilador, bomba, relés, válvula solenóide (via SSR/MOSFET) |
 | **Materiais** | Vidraria de laboratório reciclada, impressão 3D, sucata eletrônica |
-| **Custo estimado** | ~R$ 1.223,00 (protótipo completo, com ~60% de materiais reciclados) |
+| **Custo estimado** | ~R$ 527,00 em peças (+ ~R$ 503,00 em componentes já próprios/reutilizados) |
 
 ## Filosofia de Sustentabilidade
 
@@ -76,19 +80,40 @@ python3 gerar_relatorio.py
 
 ### Regenerar o Pitch
 ```bash
+cd "Coleção de Software/scripts"
 python3 gerar_pitch.py
+```
+
+### Regenerar Diagramas (PlantUML)
+```bash
+cd "Coleção de Software/scripts"
+python3 gerar_diagramas.py
+```
+
+### Regenerar CAD (esquemático DXF/SVG/PNG + carcaça STL)
+```bash
+cd "Coleção de Software/scripts"
+python3 esquema_eletrico.py
+python3 gerar_mecanica.py
+```
+
+### Mockups do Simulador (Chromium headless)
+```bash
+cd "Coleção de Software/scripts"
+python3 gerar_mockups.py
+```
+
+### Simulador Nativo (C++20, scripts/dist)
+```bash
+cd "Coleção de Software/scripts/dist"
+./build.sh && ./bin/tupan_sim --help
 ```
 
 ### Executar o Simulador Web
 ```bash
+cd "Coleção de Software/scripts"
 python3 simulador_tupan.py
 # Acesse http://127.0.0.1:5000 no navegador
-```
-
-### Regenerar Imagens
-```bash
-cd "Coleção de Software/scripts"
-python3 gerar_imagens.py
 ```
 
 ## Licença

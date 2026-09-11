@@ -1,12 +1,14 @@
-# Tupan Water Maker
+# Tupan, Máquina de Chuva
 
-[![Traduzir para PT-BR](https://img.shields.io/badge/PT-BR-Português-blue.svg)](README_PT-BR.md)
+*In English: Tupan, Rain Machine.*
+
+[![Traduzir para PT-BR](https://img.shields.io/badge/PT-BR-Português-blue.svg)](Coleção%20de%20Software/docs/README_PT-BR.md)
 
 A portable atmospheric water generator designed for individual/small-scale hydration in water-scarce environments. The project combines microelectronics (Arduino Mega), analog/digital circuit design, systems engineering, and IoT connectivity.
 
 ## Project Origin
 
-The **Tupan Water Maker** was conceived as an academic project for the **IoT & PLCs** course at **PUC-MG** (Pontifícia Universidade Católica de Minas Gerais), Computer Engineering program, semester **2026.2**, by **Túlio Ferreira Horta**.
+The **Tupan, Máquina de Chuva** (formerly "Tupan Water Maker") was conceived as an academic project for the **IoT & PLCs** course at **PUC-MG** (Pontifícia Universidade Católica de Minas Gerais), Computer Engineering program, semester **2026.2**, by **Túlio Ferreira Horta**.
 
 The idea emerged from a shared concern: **water scarcity**. In Brazil's semi-arid Northeast region — home to over 30 million people — drought cycles are recurrent and devastating. Families depend on water trucks, cisterns, and increasingly strained groundwater. The project explores whether technology can provide a **decentralized, low-cost complement** to existing infrastructure.
 
@@ -27,17 +29,21 @@ This README, however, is in **English** to make the project accessible to an int
 
 ```
 Tupan Water Maker/
+├── README.md
 ├── Documentação Oficial/          # Official deliverables
 │   ├── relatórioDescritivo.docx  # Technical report (PT-BR)
-│   ├── Arquivo de Mídia/          # Images, graphs, diagrams
-│   └── Arquivos CAD/              # UML, schematics, flowcharts
-├── Coleção de Software/           # Source code and scripts
-│   ├── scripts/                   # Generation scripts
-│   ├── firmware/                  # C++20 MVC firmware
-│   ├── docs/                      # Documentation
-│   ├── testes/                    # Test plans
-│   └── recursos/                  # Resources
-└── Tupan_Water_Maker_Pitch.pptx   # Sales pitch presentation
+│   ├── apresentaçãoProduto.pptx  # Sales pitch presentation
+│   ├── Arquivo de Mídia/          # Images, graphs, diagrams (+ fontes/ sources)
+│   └── Arquivos CAD/              # UML, schematics, CAD (DXF/SVG/STL, + fontes/)
+└── Coleção de Software/           # Source code
+    ├── docs/                      # README_PT-BR.md
+    └── scripts/                   # ALL Python: generators, simulator, CAD, tests
+        ├── testes/                # Unit tests (pytest)
+        ├── templates/             # Flask simulator web UI
+        ├── dist/                  # C++20/pybind11 native simulator + builds
+        ├── requirements.txt
+        ├── setup.py
+        └── pyproject.toml
 ```
 
 ## Key Technical Highlights
@@ -51,7 +57,7 @@ Tupan Water Maker/
 | **Sensors** | DHT22 (temp/humidity), DS18B20, BMP280, water level sensor |
 | **Actuators** | Fan, pump, heating resistor, valves (via SSR/MOSFET) |
 | **Materials** | Recycled lab glassware, 3D-printed PLA, scrap electronics |
-| **Cost estimate** | ~R$ 1.223 protótipo (with ~60% recycled materials) |
+| **Cost estimate** | ~R$ 527 in parts (with ~R$ 503 in owned/reused components) |
 
 ## Sustainability Philosophy
 
@@ -76,13 +82,40 @@ python3 gerar_relatorio.py
 
 ### Regenerate the Pitch
 ```bash
+cd "Coleção de Software/scripts"
 python3 gerar_pitch.py
 ```
 
-### Regenerate Images
+### Regenerate Diagrams (PlantUML)
 ```bash
 cd "Coleção de Software/scripts"
-python3 gerar_imagens.py
+python3 gerar_diagramas.py
+```
+
+### Regenerate CAD (schematic DXF/SVG/PNG + enclosure STL)
+```bash
+cd "Coleção de Software/scripts"
+python3 esquema_eletrico.py
+python3 gerar_mecanica.py
+```
+
+### Simulator Mockups (headless Chromium)
+```bash
+cd "Coleção de Software/scripts"
+python3 gerar_mockups.py
+```
+
+### Native Simulator (C++20, scripts/dist)
+```bash
+cd "Coleção de Software/scripts/dist"
+./build.sh && ./bin/tupan_sim --help
+```
+
+### Run the Web Simulator
+```bash
+cd "Coleção de Software/scripts"
+python3 simulador_tupan.py
+# Open http://127.0.0.1:5000
 ```
 
 ## License

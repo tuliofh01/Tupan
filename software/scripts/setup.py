@@ -1,16 +1,19 @@
 # Tupan Water Maker - Setup
-from setuptools import setup, find_packages
+import os
+from setuptools import setup
+
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 setup(
-    name="tupan-water-maker",
+    name="tupan-machina-de-chuva",
     version="0.1.0",
     author="Túlio Ferreira Horta",
     author_email="tulio.horta@pucmg.edu.br",
     description="Portable atmospheric water generator - academic project",
-    long_description=open("README.md").read(),
+    long_description=open(os.path.join(REPO, "README.md")).read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/tuliofh/tupan-water-maker",
-    packages=find_packages(),
+    url="https://github.com/tuliofh/tupan-machina-de-chuva",
+    packages=[],
     install_requires=[
         "python-docx>=0.8.11",
         "matplotlib>=3.5.0",
