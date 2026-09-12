@@ -29,8 +29,20 @@ PYBIND11_MODULE(tupan_native, m) {
         .def(py::init<>())
         .def_readonly("water_kg_sorbed", &tupan::CycleBreakdown::water_kg_sorbed)
         .def_readonly("distilled_l",     &tupan::CycleBreakdown::distilled_l)
+        .def_readonly("potable_l",       &tupan::CycleBreakdown::potable_l)
+        .def_readonly("ca_mg_l",         &tupan::CycleBreakdown::ca_mg_l)
+        .def_readonly("mg_mg_l",         &tupan::CycleBreakdown::mg_mg_l)
+        .def_readonly("basin_full",      &tupan::CycleBreakdown::basin_full)
         .def_readonly("energy_kj_total", &tupan::CycleBreakdown::energy_kj_total)
         .def_readonly("liters_per_kwh",  &tupan::CycleBreakdown::liters_per_kwh);
+
+    py::class_<tupan::PostTreatment>(m, "PostTreatment")
+        .def(py::init<>())
+        .def_readonly("water_l",     &tupan::PostTreatment::water_l)
+        .def_readonly("ca_mg_l",     &tupan::PostTreatment::ca_mg_l)
+        .def_readonly("mg_mg_l",     &tupan::PostTreatment::mg_mg_l)
+        .def_readonly("uv_energy_j", &tupan::PostTreatment::uv_energy_j)
+        .def_readonly("basin_full",  &tupan::PostTreatment::basin_full);
 
     py::class_<tupan::Simulator::CycleResult>(m, "CycleResult")
         .def(py::init<>())
@@ -83,7 +95,9 @@ PYBIND11_MODULE(tupan_native, m) {
           py::arg("efficiency"), py::arg("heater_temp_c"),
           "Ciclo completo determinístico (sorção + destilação)");
     m.def("sorption_intake", &tupan::sorption_intake, "Água sorvida no leito (kg)");
-    m.def("distillation_output", &tupan::distillation_output, "Água destilada (L)");
+    m.def("distillation_output", &tupan::distillation_output, "Água destilada na vidraria (L)");
+    m.def("post_treatment", &tupan::post_treatment, py::arg("distilled_l"),
+          "Pós-tratamento: filtro mineralizante + UV-C → bacia (L potáveis)");
     m.def("saturation_vapor_density", &tupan::saturation_vapor_density,
           "Densidade de vapor saturado (g/m³) — Magnus");
 }

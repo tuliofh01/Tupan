@@ -76,19 +76,26 @@ int main(int argc, char** argv) {
 
     if (o.json) {
         std::printf("{\"noite_h\":%.2f,\"dia_h\":%.2f,\"sorvido_kg\":%.4f,\"destilado_l\":%.4f,"
+                    "\"potavel_l\":%.4f,\"ca_mg_l\":%.1f,\"mg_mg_l\":%.1f,\"bacia_cheia\":%s,"
                     "\"mc\":{\"media\":%.4f,\"p05\":%.4f,\"p50\":%.4f,\"p95\":%.4f},"
                     "\"ml\":%.4f,\"rmse\":%.6f,\"r2\":%.4f,\"l_por_kwh\":%.3f}\n",
                     o.night, o.day, det.water_kg_sorbed, det.distilled_l,
+                    det.potable_l, det.ca_mg_l, det.mg_mg_l,
+                    det.basin_full ? "true" : "false",
                     mc.mean, mc.p05, mc.p50, mc.p95, ml, rmse, r2, det.liters_per_kwh);
     } else {
-        std::printf("Tupan, Máquina de Chuva — simulação nativa (ciclo sorção/destilação)\n");
-        std::printf("  noite: UR %.0f%% | %.0f °C | %.0f m³/h | η %.2f → %.2f kg sorvidos\n",
+        std::printf("Tupan, Máquina de Chuva — simulação nativa (sorção → solenoide → vidraria → filtro+UV → bacia)\n");
+        std::printf("  noite: UR %.0f%% | %.0f °C | %.0f m³/h | η %.2f → %.2f kg sorvidos no leito\n",
                     o.ur, o.temp, o.fluxo, o.efic, det.water_kg_sorbed);
-        std::printf("  dia  : aquecedor %.0f °C → %.2f L destilados (%.2f L/kWh)\n",
-                    o.aquec, det.distilled_l, det.liters_per_kwh);
+        std::printf("  dia  : solenoide %.0f °C → %.2f L destilados na vidraria\n",
+                    o.aquec, det.distilled_l);
+        std::printf("  pós  : filtro mineralizante (Ca %.0f/Mg %.0f mg/L) + UV-C → %.2f L na bacia%s\n",
+                    det.ca_mg_l, det.mg_mg_l, det.potable_l,
+                    det.basin_full ? " [bacia cheia]" : "");
         std::printf("  Monte Carlo (%d corridas): média %.3f L | p05 %.3f | p50 %.3f | p95 %.3f\n",
                     o.runs, mc.mean, mc.p05, mc.p50, mc.p95);
-        std::printf("  ML grau 2  : %.3f L (RMSE %.4f, R² %.3f)\n", ml, rmse, r2);
+        std::printf("  ML grau 2  : %.3f L (RMSE %.4f, R² %.3f) | conta: %.2f L/kWh\n",
+                    ml, rmse, r2, det.liters_per_kwh);
     }
     if (!o.log_path.empty())
         sim.blog(LogLevel::INFO, "cli", "simulação concluída");

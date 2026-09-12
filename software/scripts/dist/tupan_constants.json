@@ -33,7 +33,19 @@
     "corridas_padrao": 50000
   },
   "energia": {
-    "potencia_compressor_w": 80.0,
+    "potencia_compressor_w": 0.0,
+    "fans_watts": 7.5,
     "potencia_eletronica_w": 5.0
+  },
+  "destilacao": {
+    "distillation_efficiency": 0.92
+  },
+  "pos_tratamento": {
+    "mineral_filter_recovery": 0.98,
+    "mineral_ca_mg_l": 45.0,
+    "mineral_mg_mg_l": 18.0,
+    "uv_watts": 6.0,
+    "uv_dose_mj_cm2": 40.0,
+    "basin_liters": 2.0
   }
 }

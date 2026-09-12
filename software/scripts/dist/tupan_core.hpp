@@ -10,9 +10,14 @@
 //    [serviços]  tupan_sim CLI · tupan_gui Qt5 · Flask web · firmware FSM
 //  Cada serviço consome o MESMO núcleo; dados fluem via CSV/JSON (contratos).
 //
-//  CICLO FÍSICO (sem compressor — decisão de projeto 2026-09):
-//    NOITE  (SORÇÃO) : ventoinhas sugam ar → leito CaCl₂ retém H₂O (exotérmico)
-//    DIA    (REGEN)  : aquecedor (bobina) 120 °C → vapor → DESTILAÇÃO em vidraria
+//  CICLO FÍSICO FINAL (sem compressor — decisão de projeto 2026-09):
+//    NOITE  (SORÇÃO) : ventoinhas forçam ar noturno → leito CaCl₂ retém H₂O
+//    AMANHECER       : servo-registro fecha a entrada de ar e abre o duto
+//    DIA    (REGEN)  : solenoide aquece o sal úmido a 120 °C → vapor
+//    DESTILAÇÃO      : vapor condensa na vidraria → destilado limpo
+//    PÓS-TRATAMENTO  : filtro mineralizante (reposição Ca/Mg, perda ~2 %)
+//                      + lâmpada UV-C 254 nm (esterilização, sem perda de água)
+//    ARMAZENAMENTO   : bacia potável com torneira (2 L)
 //  A produção depende de: água sorvida (kg), energia do aquecedor, eficiência
 //  de destilação e perdas térmicas. Modelo: Balança-de-massa + bolha de Calder.
 // ============================================================================
@@ -86,6 +91,14 @@ struct Constants {
     Real  heater_efficiency     = 0.90;   // fração que vira calor no leito
     // --- Destilação em vidraria ---
     Real  distillation_efficiency = 0.92; // fração de vapor que condensa limpo
+    // --- Pós-tratamento (filtro mineralizante + UV-C) ---
+    Real  mineral_filter_recovery = 0.98; // perda de purga do filtro (~2 %)
+    Real  mineral_ca_mg_l         = 45.0; // Ca²⁺ reposto (mg/L — perfil "água mineral")
+    Real  mineral_mg_mg_l         = 18.0; // Mg²⁺ reposto (mg/L)
+    Watts uv_watts                = 6.0;  // lâmpada UV-C 254 nm (6 W, 30 min)
+    Real  uv_dose_mj_cm2          = 40.0; // dose UV (mJ/cm²) — > 40 inativa 99,99 %
+    // --- Bacia potável ---
+    Real  basin_liters            = 2.0;  // capacidade da bacia com torneira
     // --- Energia ---
     Watts fans_watts            = 7.5;    // 3× 2,5 W (ventoinhas, sem compressor)
     Watts electronics_w         = 5.0;    // Mega + sensores + OLED
@@ -194,7 +207,7 @@ inline bool load_constants(const std::string& path) {
     auto num = [&](std::string_view g, std::string_view k, Real& target) {
         std::size_t b = 0, e = 0;
         if (detail::group_block(src, g, b, e))
-            detail::extract_number(src, k, b, target);   // busca restrita ao bloco
+            (void)detail::extract_number(src, k, b, target);  // ausente ⇒ mantém default
     };
     num("fisica", "magnus_a", c.magnus_a);
     num("fisica", "magnus_b", c.magnus_b);
@@ -208,6 +221,12 @@ inline bool load_constants(const std::string& path) {
     num("aquecedor", "heater_watts", c.heater_watts);
     num("aquecedor", "heater_efficiency", c.heater_efficiency);
     num("destilacao", "distillation_efficiency", c.distillation_efficiency);
+    num("pos_tratamento", "mineral_filter_recovery", c.mineral_filter_recovery);
+    num("pos_tratamento", "mineral_ca_mg_l", c.mineral_ca_mg_l);
+    num("pos_tratamento", "mineral_mg_mg_l", c.mineral_mg_mg_l);
+    num("pos_tratamento", "uv_watts", c.uv_watts);
+    num("pos_tratamento", "uv_dose_mj_cm2", c.uv_dose_mj_cm2);
+    num("pos_tratamento", "basin_liters", c.basin_liters);
     num("energia", "fans_watts", c.fans_watts);
     num("energia", "potencia_eletronica_w", c.electronics_w);
     num("ml", "ridge_lambda", c.ml_ridge);
@@ -288,13 +307,55 @@ struct Environment {
 }
 
 // ---------------------------------------------------------------------------
-// RESULTADO DE UM CICLO COMPLETO (noite+dia) — didático e auditável.
+// FÍSICA DO CICLO — Fase 3: PÓS-TRATAMENTO (filtro mineralizante + UV-C).
+// DIDÁTICA (modelo):
+//   • Filtro mineralizante: acrescenta sais (Ca²⁺/Mg²⁺) ao destilado "agéutico"
+//     e tem PERDA de purga (~2 %) — modelada como recuperação 0,98;
+//   • UV-C: esterilização DOSMOLÓGICA — dose D = P_uv·t/(área·fluxo). Como o
+//     destilado já é destilado (esterilidade parcial), a UV é barreira de
+//     segurança e NÃO remove água: custo só de energia (W·min).
+//   • Bacia: o que não cabe (2 L) fica no ciclo seguinte (não é perda física —
+//     é limite de armazenamento reportado).
+// ---------------------------------------------------------------------------
+struct PostTreatment {
+    Liters  water_l      = 0.0;   // L potáveis que chegam à bacia
+    Real    ca_mg_l      = 0.0;   // Ca²⁺ no produto final (mg/L)
+    Real    mg_mg_l      = 0.0;   // Mg²⁺ no produto final (mg/L)
+    Joules  uv_energy_j  = 0.0;   // energia da UV-C no ciclo
+    bool    basin_full   = false; // bacia atingiu a capacidade
+};
+
+[[nodiscard]] inline PostTreatment post_treatment(Liters distilled_l) noexcept {
+    const Constants& k = constants();
+    PostTreatment p;
+    if (distilled_l <= 0.0) return p;
+
+    // 1) Filtro mineralizante (recuperação 0,98: perda de purga).
+    const Real filtrada = distilled_l * k.mineral_filter_recovery;
+
+    // 2) UV-C: sem perda de água; energia da lâmpada por 30 min (dose segura).
+    p.uv_energy_j = k.uv_watts * 1800.0; // 30 min em joules
+
+    // 3) Bacia com torneira (capacidade limita o armazenamento reportado).
+    p.water_l    = std::min(filtrada, k.basin_liters);
+    p.basin_full = filtrada > k.basin_liters;
+    p.ca_mg_l    = k.mineral_ca_mg_l;   // perfil de mineralização fixo (ANVISA)
+    p.mg_mg_l    = k.mineral_mg_mg_l;
+    return p;
+}
+
+// ---------------------------------------------------------------------------
+// RESULTADO DE UM CICLO COMPLETO (noite+dia+pós) — didático e auditável.
 // ---------------------------------------------------------------------------
 struct CycleBreakdown {
-    Liters water_kg_sorbed  = 0.0; // kg retidos na noite
-    Liters distilled_l      = 0.0; // L potáveis no dia
-    Joules energy_kj_total  = 0.0; // energia total do ciclo
-    Real  liters_per_kwh    = 0.0; // eficiência energética (contas ambientais)
+    Real  water_kg_sorbed  = 0.0; // kg retidos na noite
+    Liters distilled_l     = 0.0; // L destilados na vidraria (dia)
+    Liters potable_l       = 0.0; // L POTÁVEIS na bacia (após filtro+UV)
+    Real  ca_mg_l          = 0.0; // mineralização final (Ca²⁺ mg/L)
+    Real  mg_mg_l          = 0.0; // mineralização final (Mg²⁺ mg/L)
+    Joules energy_kj_total = 0.0; // energia total (fans + solenoide + UV)
+    Real  liters_per_kwh   = 0.0; // eficiência energética (L/kWh — potável!)
+    bool  basin_full       = false;
 };
 
 // Executa um ciclo completo: `night_hours` de sorção + `day_hours` de regen.
@@ -307,9 +368,15 @@ struct CycleBreakdown {
     cb.water_kg_sorbed = sorption_intake(night_hours, humidity, temperature,
                                          fan_flow, efficiency);
     cb.distilled_l     = distillation_output(day_hours, cb.water_kg_sorbed, heater_temp_c);
-    cb.energy_kj_total = (k.fans_watts * night_hours + k.heater_watts * day_hours) * 3600.0;
+    const auto p       = post_treatment(cb.distilled_l);
+    cb.potable_l       = p.water_l;
+    cb.ca_mg_l         = p.ca_mg_l;
+    cb.mg_mg_l         = p.mg_mg_l;
+    cb.basin_full      = p.basin_full;
+    cb.energy_kj_total = (k.fans_watts * night_hours + k.heater_watts * day_hours) * 3600.0
+                       + p.uv_energy_j;
     const Real kwh     = cb.energy_kj_total / 3.6e6;
-    cb.liters_per_kwh  = (kwh > 0.0) ? cb.distilled_l / kwh : 0.0;
+    cb.liters_per_kwh  = (kwh > 0.0) ? cb.potable_l / kwh : 0.0;
     return cb;
 }
 

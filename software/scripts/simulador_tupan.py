@@ -57,9 +57,13 @@ except ImportError:
     def full_cycle(nh, dh, rh, t, ff, ef, ht):
         w = sorption_intake(nh, rh, t, ff, ef)
         l = distillation_output(dh, w, ht)
-        energy = (7.5 * nh + 250.0 * dh) * 3600.0
+        energy = (7.5 * nh + 250.0 * dh + 0.108) * 3600.0  # + UV-C 6 W × 18 min
+        potavel = min(l * 0.98, 2.0)  # filtro mineralizante (recup. 98 %) → bacia 2 L
         return type("CB", (), {"water_kg_sorbed": w, "distilled_l": l,
-                               "liters_per_kwh": l / (energy / 3.6e6) if energy else 0.0})
+                               "potable_l": potavel,
+                               "ca_mg_l": 45.0, "mg_mg_l": 18.0,
+                               "basin_full": l * 0.98 > 2.0,
+                               "liters_per_kwh": potavel / (energy / 3.6e6) if energy else 0.0})
 
 if _NATIVO:
     sorption_intake = tn.sorption_intake
@@ -125,7 +129,11 @@ class Simulador:
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "noite_h": night_hours, "dia_h": day_hours,
             "kg_sorvidos": round(cb.water_kg_sorbed, 4),
-            "litros": round(cb.distilled_l, 4),
+            "litros_destilados": round(cb.distilled_l, 4),
+            "litros_potaveis": round(cb.potable_l, 4),
+            "ca_mg_l": round(cb.ca_mg_l, 1),
+            "mg_mg_l": round(cb.mg_mg_l, 1),
+            "bacia_cheia": bool(cb.basin_full),
             "l_por_kwh": round(cb.liters_per_kwh, 3),
         })
         return resultados
@@ -135,7 +143,11 @@ class Simulador:
                         self.ambiente["temperature"], self.ambiente["fan_flow"],
                         self.ambiente["efficiency"], self.ambiente["heater_temp_c"])
         return {"kg_sorvidos": round(cb.water_kg_sorbed, 4),
-                "litros": round(cb.distilled_l, 4),
+                "litros_destilados": round(cb.distilled_l, 4),
+                "litros_potaveis": round(cb.potable_l, 4),
+                "ca_mg_l": round(cb.ca_mg_l, 1),
+                "mg_mg_l": round(cb.mg_mg_l, 1),
+                "bacia_cheia": bool(cb.basin_full),
                 "l_por_kwh": round(cb.liters_per_kwh, 3)}
 
 

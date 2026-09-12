@@ -77,7 +77,7 @@
 <main>
   <div class="kpis">
     <div class="card kpi"><div class="num" id="kpi-sorvidos">—</div><div class="rot">kg sorvidos / noite</div></div>
-    <div class="card kpi"><div class="num" id="kpi-litros">—</div><div class="rot">litros destilados / ciclo</div></div>
+    <div class="card kpi"><div class="num" id="kpi-potaveis">—</div><div class="rot">litros potáveis na bacia / ciclo</div></div>
     <div class="card kpi"><div class="num" id="kpi-lkwh">—</div><div class="rot">litros por kWh</div></div>
     <div class="card kpi"><div class="num" id="kpi-ano">—</div><div class="rot">litros / ano projetados</div></div>
   </div>
@@ -107,6 +107,7 @@
       <div class="conta">
         Prestação de contas ambiental: energia do ciclo
         <b id="c-energia">—</b> · eficiência energética <b id="c-lkwh">—</b>
+        · pós-tratamento: filtro mineralizante (recup. 98 %) + UV-C 6 W (30 min)
         · limitado pela energia do aquecedor e pela saturação do leito CaCl₂.
       </div>
     </div>
@@ -276,11 +277,11 @@ $("btn-ciclo").onclick = async () => {
   const d = await api("/api/ciclo", "POST", corpo);
   const c = d.contas;
   fase = "dia";
-  litrosTanque = c.litros;
+  litrosTanque = c.litros_potaveis;
   $("kpi-sorvidos").textContent = c.kg_sorvidos.toFixed(2);
-  $("kpi-litros").textContent = c.litros.toFixed(2);
+  $("kpi-potaveis").textContent = c.litros_potaveis.toFixed(2);
   $("kpi-lkwh").textContent = c.l_por_kwh.toFixed(2);
-  $("kpi-ano").textContent = (c.litros * 365 * 0.9).toFixed(0);
+  $("kpi-ano").textContent = (c.litros_potaveis * 365 * 0.9).toFixed(0);
   $("c-energia").textContent = `${((7.5 * corpo.noite_h + 250 * corpo.dia_h) / 1000).toFixed(2)} kWh`;
   $("c-lkwh").textContent = `${c.l_por_kwh.toFixed(2)} L/kWh`;
   atualizarFrota();
