@@ -1,337 +1,203 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Tupan Simulation Dashboard - Simulador com UI Dinâmica Web
-Simula um ambiente com múltiplos Tupans e verifica o output de água de cada um.
-Abordagem: Data Science + Machine Learning (previsão de produção de água).
-"""
+Tupan, Máquina de Chuva — Servidor Web do Simulador (Flask, microsserviço WEB)
+==============================================================================
+Consome o NÚCLEO NATIVO C++ (tupan_native, pybind11) e expõe REST+UI em PT-BR.
+Fallback autônomo em Python puro se o módulo compilado não estiver no PATH.
 
+Uso:  python3 simulador_tupan.py   → http://127.0.0.1:5000
+"""
+from __future__ import annotations
+
+import json
 import os
 import sys
-import json
-import math
-import random
-import threading
-import time
+from pathlib import Path
+from typing import Any, Final
+
+from flask import Flask, jsonify, render_template, request
+
+# ---------------------------------------------------------------------------
+# NÚCLEO NATIVO (pybind) com fallback puro-Python — mesmas fórmulas do core.
+# ---------------------------------------------------------------------------
+DIST: Final[Path] = Path(__file__).resolve().parent / "dist" / "bin"
+if str(DIST) not in sys.path:
+    sys.path.insert(0, str(DIST))
 
 try:
-    from flask import Flask, render_template, request, jsonify
-    import numpy as np
-    from sklearn.linear_model import LinearRegression
-    from sklearn.preprocessing import PolynomialFeatures
+    import tupan_native as tn
+    _NATIVO: Final[bool] = True
 except ImportError:
-    print("ERRO: Instale as dependências: pip install flask numpy scikit-learn")
-    sys.exit(1)
+    _NATIVO = False
+    import math
 
-# ============================================================
-# DIRETÓRIOS
-# ============================================================
-BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-MEDIA_DIR = os.path.join(BASE, "Documentação Oficial", "Arquivo de Mídia")
-os.makedirs(MEDIA_DIR, exist_ok=True)
+    def sorption_intake(hours, humidity, temperature, fan_flow, efficiency) -> float:
+        es = 6.1094 * math.exp(17.625 * temperature / (243.04 + temperature))
+        rho_sat = 216.7 * es / (temperature + 273.15)
+        captura = max(0.0, (humidity / 100.0) * rho_sat - 0.60 * _rho_sat(20.0)) \
+            * max(0.0, fan_flow * hours) * min(1.0, max(0.0, efficiency)) / 1000.0
+        M, q, k = 2.0, 1.0, 0.55
+        return float(min(captura, M * q * (1.0 - math.exp(-k * hours))))
 
-# ============================================================
-# MODELO FÍSICO-ESTOCÁSTICO DO TUPAN
-# ============================================================
-def saturation_vapor_density(temp_c):
-    """Densidade de vapor d'água saturado (g/m³) via fórmula de Magnus."""
-    es = 6.1094 * math.exp((17.625 * temp_c) / (243.04 + temp_c))
-    return 216.7 * es / (temp_c + 273.15)
+    def _rho_sat(temp_c: float) -> float:
+        es = 6.1094 * math.exp(17.625 * temp_c / (243.04 + temp_c))
+        return 216.7 * es / (temp_c + 273.15)
 
+    def distillation_output(hours, water_kg, heater_temp_c) -> float:
+        if hours <= 0 or water_kg <= 0:
+            return 0.0
+        release = min(1.0, max(0.0, (heater_temp_c - 80.0) / 40.0))
+        released = water_kg * release
+        energy_kj = 250.0 * hours * 3.6 * 0.90
+        needed = released * (4.186 * 75.0 + 2257.0)
+        fator = min(1.0, energy_kj / needed) if needed > 0 else 0.0
+        return released * fator * 0.92
 
-def theoretical_output(hours, humidity, temperature, fan_flow, efficiency, coil_temperature):
-    """Produção teórica de água (litros) sem ruído estocástico.
+    def full_cycle(nh, dh, rh, t, ff, ef, ht):
+        w = sorption_intake(nh, rh, t, ff, ef)
+        l = distillation_output(dh, w, ht)
+        energy = (7.5 * nh + 250.0 * dh) * 3600.0
+        return type("CB", (), {"water_kg_sorbed": w, "distilled_l": l,
+                               "liters_per_kwh": l / (energy / 3.6e6) if energy else 0.0})
 
-    fan_flow é dado em m³/h (unidade padrão de vazão de ventiladores de AWG).
-    """
-    vapor_in = (humidity / 100.0) * saturation_vapor_density(temperature)
-    vapor_out = saturation_vapor_density(coil_temperature)
-    condensable = max(0.0, vapor_in - vapor_out)  # g/m³
-    air_volume_m3 = fan_flow * hours
-    water_g = condensable * air_volume_m3 * efficiency
-    return water_g / 1000.0
+if _NATIVO:
+    sorption_intake = tn.sorption_intake
+    distillation_output = tn.distillation_output
+    full_cycle = tn.full_cycle
+
+# ===========================================================================
+# MODELO DE FROTA (compatível com o núcleo: mesmas chaves, ruído determinístico)
+# ===========================================================================
+import random
+import time
 
 
 class TupanModel:
-    """
-    Modelo físico-estocástico para simular a produção de água de um Tupan.
-    Fatores que influenciam a produção:
-    - Umidade relativa do ar (%)
-    - Temperatura (°C)
-    - Pressão atmosférica (hPa)
-    - Vazão do ventilador (m³/h)
-    - Eficiência do sistema (fração 0-1)
-    - Temperatura da serpentina (°C)
-    """
+    """Dispositivo estocástico — envolve o núcleo com ruído multiplicative ±5 %."""
 
-    def __init__(self, params=None):
-        self.params = {
-            "relative_humidity": 60.0,   # %
-            "temperature": 28.0,         # °C
-            "pressure": 1013.0,          # hPa
-            "fan_flow": 25.0,            # m³/h
-            "efficiency": 0.85,          # fração (0-1)
-            "coil_temperature": 8.0,     # °C
-            "noise": 0.05,               # ruído estocástico
+    def __init__(self, env: dict[str, float] | None = None) -> None:
+        self.env: dict[str, float] = env or {
+            "relative_humidity": 65.0, "temperature": 24.0, "pressure": 1013.0,
+            "fan_flow": 25.0, "efficiency": 0.85, "heater_temp_c": 120.0,
         }
-        if params:
-            self.params.update(params)
 
-    def calculate_output(self, hours=1.0, seed=None):
-        """
-        Calcula o volume de água produzido em litros.
-
-        Fórmula simplificada baseada na capacidade de retenção de vapor:
-        - Ar a 30°C e 100% UR retém ~30 g/m³ de vapor
-        - Ar a 10°C retém ~9 g/m³
-        - Diferença = 21 g/m³ condensável
-        """
-        p = self.params
+    def calculate(self, night_hours: float, day_hours: float, seed: int | None = None) -> float:
         if seed is not None:
             random.seed(seed)
-
-        output_liters = theoretical_output(
-            hours,
-            p["relative_humidity"],
-            p["temperature"],
-            p["fan_flow"],
-            p["efficiency"],
-            p["coil_temperature"],
-        )
-
-        # Ruído estocástico (simula turbulência, sujeira, variações)
-        noise = random.uniform(-p["noise"], p["noise"])
-        output_liters = output_liters * (1 + noise)
-
-        return round(max(0.0, output_liters), 4)
+        cb = full_cycle(night_hours, day_hours,
+                        self.env["relative_humidity"], self.env["temperature"],
+                        self.env["fan_flow"], self.env["efficiency"],
+                        self.env["heater_temp_c"])
+        noise = random.uniform(-0.05, 0.05)
+        return max(0.0, cb.distilled_l * (1.0 + noise))
 
 
-# ============================================================
-# MODELO DE MACHINE LEARNING
-# ============================================================
-class WaterProductionML:
-    """
-    Modelo de Machine Learning para prever produção de água.
-    Usa regressão polinomial para capturar não-linearidades.
-    """
+class Simulador:
+    """Frota de Tupans + histórico + contas ambientais (L/kWh auditável)."""
 
-    def __init__(self):
-        self.model = None
-        self.poly = PolynomialFeatures(degree=2, include_bias=False)
-        self.regressor = LinearRegression()
+    def __init__(self) -> None:
+        self.frota: list[dict[str, Any]] = []
+        self.ambiente: dict[str, float] = TupanModel().env.copy()
+        self.historico: list[dict[str, Any]] = []
 
-    def train(self, features, targets):
-        X = self.poly.fit_transform(features)
-        self.regressor.fit(X, targets)
-        self.model = True
+    def adicionar(self) -> int:
+        id_ = (self.frota[-1]["id"] + 1) if self.frota else 1
+        self.frota.append({"id": id_, "modelo": TupanModel(self.ambiente.copy()),
+                           "litros": 0.0, "status": "online"})
+        return id_
 
-    def predict(self, features):
-        if not self.model:
-            return None
-        X = np.asarray(features, dtype=float)
-        if X.ndim == 1:
-            X = X.reshape(1, -1)
-        X = self.poly.transform(X)
-        return float(self.regressor.predict(X)[0])
+    def remover(self, id_: int) -> None:
+        self.frota = [t for t in self.frota if t["id"] != id_]
 
+    def ciclo(self, night_hours: float, day_hours: float, seed: int | None = None) -> list[dict[str, Any]]:
+        resultados = []
+        for t in self.frota:
+            t["modelo"].env.update(self.ambiente)
+            litros = t["modelo"].calculate(night_hours, day_hours, seed)
+            t["litros"] = round(litros, 4)
+            t["status"] = "produzindo" if litros > 0 else "ocioso"
+            resultados.append({"id": t["id"], "litros": t["litros"], "status": t["status"]})
+        cb = full_cycle(night_hours, day_hours, self.ambiente["relative_humidity"],
+                        self.ambiente["temperature"], self.ambiente["fan_flow"],
+                        self.ambiente["efficiency"], self.ambiente["heater_temp_c"])
+        self.historico.append({
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "noite_h": night_hours, "dia_h": day_hours,
+            "kg_sorvidos": round(cb.water_kg_sorbed, 4),
+            "litros": round(cb.distilled_l, 4),
+            "l_por_kwh": round(cb.liters_per_kwh, 3),
+        })
+        return resultados
 
-# ============================================================
-# SIMULADOR DE AMBIENTE
-# ============================================================
-class EnvironmentSimulator:
-    """
-    Simula um ambiente com parâmetros modificáveis.
-    Permite inserir/remover Tupans e verificar o output de água.
-    """
-
-    def __init__(self):
-        self.tupans = []
-        self.environment = {
-            "relative_humidity": 60.0,
-            "temperature": 28.0,
-            "pressure": 1013.0,
-            "fan_flow": 25.0,
-            "efficiency": 0.85,
-            "coil_temperature": 8.0,
-        }
-        self.ml_model = WaterProductionML()
-        self.history = []
-        self._generate_training_data()
-
-    def _generate_training_data(self):
-        """
-        Gera dados sintéticos para treinar o modelo de ML.
-        """
-        rng = np.random.default_rng(42)
-        n_samples = 500
-        features = rng.uniform(
-            low=[30, 15, 980, 10, 0.5, 5],
-            high=[95, 40, 1035, 40, 1.0, 15],
-            size=(n_samples, 6)
-        )
-        targets = []
-        for f in features:
-            humidity, temperature, pressure, fan, eff, coil = f
-            output = theoretical_output(1.0, humidity, temperature, fan, eff, coil)
-            targets.append(output)
-        self.ml_model.train(features.tolist(), targets)
-
-    def add_tupan(self, params=None):
-        model = TupanModel(params or {})
-        tupan_id = len(self.tupans) + 1
-        tupan = {"id": tupan_id, "model": model, "output": 0.0, "status": "online"}
-        self.tupans.append(tupan)
-        return tupan
-
-    def remove_tupan(self, tupan_id):
-        self.tupans = [t for t in self.tupans if t["id"] != tupan_id]
-
-    def update_environment(self, **kwargs):
-        for key, value in kwargs.items():
-            if key in self.environment:
-                self.environment[key] = float(value)
-
-    def run_cycle(self, hours=1.0):
-        """
-        Executa um ciclo de produção de água para todos os Tupans.
-        Os parâmetros do ambiente são propagados para cada modelo antes do cálculo.
-        """
-        p = self.environment
-        results = []
-        for tupan in self.tupans:
-            tupan["model"].params.update(p)
-            seed = random.randint(1, 10**9)
-            output = tupan["model"].calculate_output(hours=hours, seed=seed)
-            tupan["output"] = output
-            tupan["status"] = "producing" if output > 0 else "idle"
-            results.append({
-                "tupan_id": tupan["id"],
-                "output_liters": output,
-                "status": tupan["status"],
-            })
-            self.history.append({
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "hours": hours,
-                "relative_humidity": p["relative_humidity"],
-                "temperature": p["temperature"],
-                "pressure": p["pressure"],
-                "output": output,
-            })
-        return results
-
-    def predict_output(self, tupan_id, hours=1.0):
-        """
-        Usa o modelo de ML para prever a produção de água.
-        """
-        tupan = next((t for t in self.tupans if t["id"] == tupan_id), None)
-        if not tupan:
-            return None
-        p = self.environment
-        features = [
-            p["relative_humidity"],
-            p["temperature"],
-            p["pressure"],
-            p["fan_flow"],
-            p["efficiency"],
-            p["coil_temperature"],
-        ]
-        return self.ml_model.predict(features) * hours
+    def contas(self) -> dict[str, float]:
+        cb = full_cycle(8.0, 6.0, self.ambiente["relative_humidity"],
+                        self.ambiente["temperature"], self.ambiente["fan_flow"],
+                        self.ambiente["efficiency"], self.ambiente["heater_temp_c"])
+        return {"kg_sorvidos": round(cb.water_kg_sorbed, 4),
+                "litros": round(cb.distilled_l, 4),
+                "l_por_kwh": round(cb.liters_per_kwh, 3)}
 
 
-# ============================================================
-# APP FLASK
-# ============================================================
+sim = Simulador()
 app = Flask(__name__)
-simulator = EnvironmentSimulator()
 
 
-@app.route("/")
-def index():
-    return render_template("simulacao.html", simulator=simulator, tupans=simulator.tupans)
+# ===========================================================================
+# ROTAS REST — contratos JSON (microsserviço WEB ⇄ UI ⇄ núcleo nativo)
+# ===========================================================================
+@app.get("/")
+def index() -> str:
+    return render_template("simulacao.html", sim=sim, nativo=_NATIVO)
 
 
-@app.route("/api/environment", methods=["GET", "POST"])
-def api_environment():
-    if request.method == "GET":
-        return jsonify(simulator.environment)
-    data = request.get_json(silent=True) or {}
-    simulator.update_environment(**data)
-    return jsonify({"status": "ok", "environment": simulator.environment})
+@app.get("/api/ambiente")
+def api_ambiente() -> Any:
+    return jsonify(sim.ambiente)
 
 
-@app.route("/api/tupans", methods=["GET"])
-def api_list_tupans():
-    tupans = [
-        {"id": t["id"], "output": round(t["output"], 4), "status": t["status"]}
-        for t in simulator.tupans
-    ]
-    return jsonify({"tupans": tupans})
+@app.post("/api/ambiente")
+def api_set_ambiente() -> Any:
+    dados = request.get_json(silent=True) or {}
+    for k, v in dados.items():
+        if k in sim.ambiente:
+            sim.ambiente[k] = float(v)
+    return jsonify({"status": "ok", "ambiente": sim.ambiente})
 
 
-@app.route("/api/tupans/add", methods=["POST"])
-def api_add_tupan():
-    data = request.get_json(silent=True) or {}
-    tupan = simulator.add_tupan(data.get("params"))
-    return jsonify({"status": "ok", "tupan": {"id": tupan["id"], "output": tupan["output"], "status": tupan["status"]}}), 201
+@app.get("/api/frota")
+def api_frota() -> Any:
+    return jsonify({"frota": [{"id": t["id"], "litros": t["litros"], "status": t["status"]}
+                              for t in sim.frota]})
 
 
-@app.route("/api/tupans/<int:tupan_id>/remove", methods=["DELETE"])
-def api_remove_tupan(tupan_id):
-    simulator.remove_tupan(tupan_id)
+@app.post("/api/frota/adicionar")
+def api_adicionar() -> Any:
+    return jsonify({"status": "ok", "id": sim.adicionar()}), 201
+
+
+@app.post("/api/frota/remover/<int:id_>")
+def api_remover(id_: int) -> Any:
+    sim.remover(id_)
     return jsonify({"status": "ok"})
 
 
-@app.route("/api/run", methods=["POST"])
-def api_run():
-    data = request.get_json(silent=True) or {}
-    hours = float(data.get("hours", 1.0))
-    results = simulator.run_cycle(hours=hours)
-    predictions = []
-    for r in results:
-        predicted = simulator.predict_output(r["tupan_id"], hours)
-        predictions.append({
-            "tupan_id": r["tupan_id"],
-            "predicted": round(predicted, 4) if predicted else None,
-            "actual": r["output_liters"],
-        })
-    return jsonify({
-        "status": "ok",
-        "hours": hours,
-        "results": results,
-        "predictions": predictions,
-        "total_output": round(sum(r["output_liters"] for r in results), 4),
-    })
+@app.post("/api/ciclo")
+def api_ciclo() -> Any:
+    d = request.get_json(silent=True) or {}
+    # Aplica ambiente recebido (UI manda tudo junto) antes do ciclo.
+    for k in ("relative_humidity", "temperature", "fan_flow", "heater_temp_c"):
+        if k in d:
+            sim.ambiente[k] = float(d[k])
+    return jsonify({"status": "ok",
+                    "resultados": sim.ciclo(float(d.get("noite_h", 8.0)),
+                                            float(d.get("dia_h", 6.0))),
+                    "contas": sim.contas()})
 
 
-@app.route("/api/history", methods=["GET"])
-def api_history():
-    return jsonify(simulator.history[-100:])
-
-
-@app.route("/api/ml/accuracy", methods=["GET"])
-def api_ml_accuracy():
-    """
-    Calcula a acurácia do modelo de ML em dados de teste.
-    """
-    rng = np.random.default_rng(123)
-    n_samples = 100
-    features = rng.uniform(
-        low=[30, 15, 980, 10, 0.5, 5],
-        high=[95, 40, 1035, 40, 1.0, 15],
-        size=(n_samples, 6)
-    )
-    targets = []
-    for f in features:
-        humidity, temperature, pressure, fan, eff, coil = f
-        targets.append(theoretical_output(1.0, humidity, temperature, fan, eff, coil))
-    predictions = []
-    for f in features:
-        pred = simulator.ml_model.predict(f.tolist())
-        predictions.append(pred if pred is not None else 0.0)
-    mse = np.mean(np.square(np.array(targets) - np.array(predictions)))
-    rmse = math.sqrt(mse)
-    r2 = 1 - (np.sum(np.square(np.array(targets) - np.array(predictions))) / np.sum(np.square(np.array(targets) - np.mean(targets))))
-    return jsonify({"rmse": round(rmse, 6), "r2": round(r2, 6)})
+@app.get("/api/historico")
+def api_historico() -> Any:
+    return jsonify(sim.historico[-100:])
 
 
 if __name__ == "__main__":
