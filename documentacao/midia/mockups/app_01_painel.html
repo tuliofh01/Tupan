@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang='pt-BR'><head><meta charset='utf-8'><style>
+:root{--bg:#0e1726;--painel:#16233a;--linha:#233450;--txt:#e8eef7;
+--dim:#8fa3bf;--agua:#3fb6ff;--noite:#7c6cff;--dia:#ffb454;
+--ok:#3ddc97;--warn:#ffd166;--erro:#ff6b6b;--uv:#b47cff;--min:#6fe0c8}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'DejaVu Sans',sans-serif}
+body{background:var(--bg);color:var(--txt);width:480px;height:960px;
+display:flex;flex-direction:column}
+header{padding:26px 24px 14px;display:flex;justify-content:space-between;
+align-items:center;border-bottom:1px solid var(--linha)}
+header h1{font-size:22px;letter-spacing:.4px}
+header .bt{font-size:12px;color:var(--ok);display:flex;gap:6px;align-items:center}
+header .bt.off{color:var(--erro)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;
+box-shadow:0 0 8px currentColor}
+main{flex:1;padding:18px 24px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--painel);border:1px solid var(--linha);border-radius:14px;
+padding:16px}
+.card h2{font-size:13px;color:var(--dim);text-transform:uppercase;
+letter-spacing:1.2px;margin-bottom:10px}
+.kpi{display:flex;gap:12px}
+.kpi .card{flex:1;text-align:center}
+.grande{font-size:34px;font-weight:700;color:var(--agua)}
+.grande span{font-size:15px;color:var(--dim)}
+.linha{display:flex;justify-content:space-between;padding:7px 0;
+font-size:15px;border-bottom:1px dashed var(--linha)}
+.linha:last-child{border-bottom:none}
+.linha b{color:var(--dim);font-weight:400}
+nav{display:flex;border-top:1px solid var(--linha)}
+nav a{flex:1;text-align:center;padding:16px 0;font-size:11px;color:var(--dim);
+text-decoration:none;border-top:2px solid transparent}
+nav a.on{color:var(--agua);border-top-color:var(--agua)}
+.fsm{display:flex;gap:6px;margin-top:4px}
+.fsm span{flex:1;text-align:center;font-size:10px;padding:6px 0;border-radius:8px;
+background:#1c2a44;color:var(--dim)}
+.fsm span.on{background:var(--agua);color:#04263d;font-weight:700}
+.timeline{display:flex;flex-direction:column;gap:10px}
+.passo{display:flex;gap:12px;align-items:stretch}
+.passo .hora{width:54px;font-size:11px;color:var(--dim);padding-top:14px}
+.passo .bola{width:14px;display:flex;justify-content:center;position:relative}
+.passo .bola i{width:12px;height:12px;border-radius:50%;background:var(--linha)}
+.passo.on .bola i{background:var(--noite);box-shadow:0 0 10px var(--noite)}
+.passo.dia.on .bola i{background:var(--dia);box-shadow:0 0 10px var(--dia)}
+.passo .bola:after{content:'';position:absolute;top:12px;bottom:-12px;width:2px;
+background:var(--linha)}
+.passo:last-child .bola:after{display:none}
+.passo .info{flex:1;background:var(--painel);border:1px solid var(--linha);
+border-radius:12px;padding:10px 14px}
+.passo.on .info{border-color:var(--noite)}
+.passo.dia.on .info{border-color:var(--dia)}
+.passo .info h3{font-size:14px;margin-bottom:3px}
+.passo .info p{font-size:12px;color:var(--dim)}
+.slider{height:6px;border-radius:3px;background:var(--linha);position:relative}
+.slider i{position:absolute;top:-6px;left:var(--x,50%);width:18px;height:18px;
+border-radius:50%;background:var(--agua);transform:translateX(-50%)}
+.btn{display:block;text-align:center;padding:13px;border-radius:12px;
+font-size:15px;font-weight:700;background:var(--agua);color:#04263d;
+margin-top:4px}
+.btn.ghost{background:none;border:1px solid var(--linha);color:var(--txt)}
+.graf{height:120px;display:flex;align-items:flex-end;gap:5px;padding-top:6px}
+.graf i{flex:1;border-radius:3px 3px 0 0;background:linear-gradient(180deg,
+var(--agua),#1c5d8f);opacity:.85}
+.graf i.noite{background:linear-gradient(180deg,var(--noite),#3a3470)}
+.tag{display:inline-block;font-size:10px;padding:3px 8px;border-radius:20px;
+margin-left:6px;vertical-align:2px}
+.tag.uv{background:var(--uv);color:#fff}
+.tag.min{background:var(--min);color:#06302a}
+footer{text-align:center;font-size:10px;color:var(--dim);padding:10px}
+</style></head><body><header><h1>Tupan · Painel</h1>
+<div class="bt "><span class="dot"></span>HC-05 · conectado</div></header>
+<main>
+  <div class="card"><h2>Máquina de estados</h2>
+    <div class="fsm">
+      <span class="on">OCIOSO</span><span>INTAKE</span><span>REGEN</span>
+      <span>DESTIL</span><span>CHEIO</span><span>ERRO</span>
+    </div>
+    <p style="font-size:12px;color:var(--dim);margin-top:8px">
+      Sorção noturna inicia às 20:12 — previsão do clima (Open-Meteo)</p>
+  </div>
+  <div class="kpi">
+    <div class="card"><div class="grande">0.75<span> kg</span></div>
+      <h2>água no leito</h2></div>
+    <div class="card"><div class="grande">691<span> mL</span></div>
+      <h2>bacia (torneira)</h2></div>
+    <div class="card"><div class="grande">0.44<span> L/kWh</span></div>
+      <h2>eficiência</h2></div>
+  </div>
+  <div class="card"><h2>Pós-tratamento</h2>
+    <div class="linha"><b>Filtro mineralizante</b><span>ativo · Ca/Mg ok
+      <span class="tag min">MIN</span></span></div>
+    <div class="linha"><b>Lâmpada UV-C</b><span>esterilização 254 nm ok
+      <span class="tag uv">UV</span></span></div>
+    <div class="linha"><b>Última troca do filtro</b><span>há 23 ciclos</span></div>
+  </div>
+</main><nav><a class="on" href="#">Painel</a><a class="" href="#">Ciclo</a><a class="" href="#">Sensores</a><a class="" href="#">Controles</a><a class="" href="#">Histórico</a><a class="" href="#">BT</a></nav><footer>Tupan, Máquina de Chuva · app companheiro IoT/BT · mockup v1</footer></body></html>
