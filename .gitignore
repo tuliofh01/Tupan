@@ -1,20 +1,81 @@
-# Python
+# ============================================================================
+#  TUPAN — arquivos irrelevantes para o versionamento
+#  Regra: só entra no Git o que é FONTE ou ENTREGÁVEL (docs/, mídia gerada,
+#  dados processados/resultados). Tudo que é reproduzível fica de fora.
+# ============================================================================
+
+# --- Python ---
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.cache/
 .venv/
 venv/
+env/
 *.egg-info/
-# Builds nativos (artefatos gerados)
+.eggs/
+build/lib/
+.installed.cfg
+
+# --- Empacotamento standalone (PyInstaller) ---
+build/pyinstaller/
+*.manifest
+# specs gerados no diretório de trabalho (o spec versionado está em packaging/)
+
+# --- Builds nativos (CMake/make) ---
 build/
 build-win/
 build-*/
-dist/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+Testing/
+Makefile.bak
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
 bin/
-# Dados gerados pesados (mantidos apenas os contratos versionados)
+dist/
+
+# --- Cobertura / logs / temporários ---
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.log
+*.tmp
+*.bak
+*~
+*.orig
+*.rej
+*.swp
+coredump
+core.*
+
+# --- Dados temporários (contratos versionados ficam em data/) ---
 data/tmp/
-# Sistema/IDE
+data/*.tmp
+
+# --- Sistema / IDE ---
 .DS_Store
 Thumbs.db
+desktop.ini
 .idea/
 .vscode/
+*.sublime-*
+.metadata/
+.settings/

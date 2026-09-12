@@ -213,6 +213,7 @@ scripts/deploy-k8s.sh --registry ghcr.io/tuliofh --tag 0.1.0
 - **VPS:** `deploy/vps/` (systemd + nginx).
 - **Jenkins:** `ci/Jenkinsfile` (build, testes, mídia, push, deploy).
 - **GitHub Actions:** `.github/workflows/ci.yml`.
+- **Standalone (sem interpretador):** `scripts/build-standalone.sh` → `dist/standalone/tupan-web` (PyInstaller).
 
 ## Mídia e Documentação
 
@@ -220,7 +221,7 @@ Toda a mídia gerada fica em `docs/midia/`: `renders/`, `graficos/`, `mapas/`,
 `mockups/`, `diagramas/`, `cad/`. Entregáveis:
 `docs/relatorios/relatorio_descritivo.docx` (artigo ABNT),
 `docs/pitch/apresentacao_produto.pptx` e o artigo do LinkedIn
-`docs/relatorios/artigo.txt`. Manuais em `docs/manuais/`.
+`docs/relatorios/artigo.txt`. Manuais: [PT-BR](docs/manuais/manual_pt-br.md) e [EN](docs/manuais/manual_en-us.md).
 
 ## Filosofia de Sustentabilidade
 

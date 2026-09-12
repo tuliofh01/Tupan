@@ -240,6 +240,7 @@ scripts/deploy-k8s.sh --registry ghcr.io/tuliofh --tag 0.1.0   # deploy k8s
 - **VPS:** `deploy/vps/` (systemd unit + nginx reverse proxy).
 - **Jenkins:** `ci/Jenkinsfile` builds, tests, generates media, pushes and deploys.
 - **GitHub Actions:** `.github/workflows/ci.yml` mirrors build/test/publish.
+- **Standalone (no interpreter):** `scripts/build-standalone.sh` → `dist/standalone/tupan-web` (PyInstaller).
 
 ## Media & Documentation
 
@@ -256,7 +257,7 @@ All generated media lives under `docs/midia/`:
 
 Deliverables: `docs/relatorios/relatorio_descritivo.docx` (ABNT article) and
 `docs/pitch/apresentacao_produto.pptx`. The LinkedIn article is at
-`docs/relatorios/artigo.txt`. Manuals are in `docs/manuais/`.
+`docs/relatorios/artigo.txt`. Manuals: [PT-BR](docs/manuais/manual_pt-br.md) and [EN](docs/manuais/manual_en-us.md).
 
 ## Sustainability Philosophy
 

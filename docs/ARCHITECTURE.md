@@ -51,9 +51,10 @@ linguagens e é o requisito de manutenibilidade (ISO/IEC 25010).
 | `data/results/` | Métricas/contratos | JSONs e projeções |
 | `docs/relatorios/` | Artigo/relatório | docx, `artigo.txt` (LinkedIn) |
 | `docs/pitch/` | Apresentação | pptx |
-| `docs/manuais/` | Manuais | PT-BR e EN-US |
+| `docs/manuais/` | Manuais | `manual_pt-br.md`, `manual_en-us.md` |
 | `docs/midia/` | Mídia gerada | `renders/ graficos/ mapas/ mockups/ diagramas/ cad/` |
-| `scripts/` | Build e operação | `build-linux.sh`, `build-windows.bat`, `build-docker.sh`, `deploy-k8s.sh` |
+| `scripts/` | Build e operação | `build-linux.sh`, `build-windows.bat`, `build-docker.sh`, `deploy-k8s.sh`, `build-standalone.sh` |
+| `packaging/` | Empacotamento standalone | `tupan-web.spec` (PyInstaller) |
 | `deploy/k8s/` | Kubernetes | namespace, deployment, service, ingress, hpa |
 | `deploy/vps/` | VPS | unit systemd + nginx |
 | `ci/` | CI/CD | `Jenkinsfile` (+ `.github/workflows/ci.yml`) |

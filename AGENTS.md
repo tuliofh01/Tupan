@@ -16,7 +16,7 @@ Este arquivo orienta agentes/colaboradores automáticos que trabalham no reposit
    e saídas sempre em `data/` ou `docs/` (ver `docs/ARCHITECTURE.md`).
 6. **Toda mudança de árvore/contrato** exige atualizar: `README.md`,
    `README.pt-BR.md`, `docs/ARCHITECTURE.md`, `docs/manuais/manual_pt-br.md`,
-   `docs/relatorios/artigo.txt` e os geradores em `tools/`.
+   `docs/manuais/manual_en-us.md`, `docs/relatorios/artigo.txt` e os geradores em `tools/`.
 
 ## Estrutura (resumo)
 

@@ -159,6 +159,19 @@ cd tools/tests && python3 -m pytest -q    # testes Python
 Os testes Python rodam contra o módulo nativo quando compilado e contra o
 fallback Python quando não — **paridade física garantida**.
 
+### 4.6 Empacotamento standalone (sem Python no destino)
+
+Para distribuir sem instalar Python, gere UM executável do serviço web:
+
+```bash
+pip install pyinstaller
+scripts/build-standalone.sh          # → dist/standalone/tupan-web
+./dist/standalone/tupan-web          # serve http://127.0.0.1:5000
+```
+
+A imagem Docker (`docker/Dockerfile`, alvo `web`) é a alternativa em contêiner.
+Manual em inglês: `docs/manuais/manual_en-us.md`.
+
 ---
 
 ## 5. COMO MONTAR A MÁQUINA
