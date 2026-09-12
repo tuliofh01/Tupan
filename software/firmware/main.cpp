@@ -11,8 +11,8 @@ void setup() {
     Serial.begin(115200);
 
     // Pinos: botões com pull-up interno; saídas de potência/HMI.
-    pinMode(tupan::PIN_BTN_UP,     INPUT_PULLUP);
-    pinMode(tupan::PIN_BTN_DOWN,   INPUT_PULLUP);
+    pinMode(tupan::PIN_BTN_CIMA,     INPUT_PULLUP);
+    pinMode(tupan::PIN_BTN_BAIXO,   INPUT_PULLUP);
     pinMode(tupan::PIN_BTN_SELECT, INPUT_PULLUP);
     pinMode(tupan::PIN_LED_VERDE,    OUTPUT);
     pinMode(tupan::PIN_LED_AMARELO,  OUTPUT);
@@ -23,10 +23,10 @@ void setup() {
 
     tupan::view::oled_init();
 
-    tupan::view::log(tupan::view::LogLevel::INFO, F("boot"),
+    tupan::view::log(tupan::view::LogNivel::INFO, F("boot"),
                      "Tupan, Maquina de Chuva — firmware MVC");
-    tupan::view::logu(tupan::view::LogLevel::INFO, F("boot"), "f_cpu_hz", F_CPU);
-    tupan::view::log(tupan::view::LogLevel::INFO, F("boot"),
+    tupan::view::logu(tupan::view::LogNivel::INFO, F("boot"), "f_cpu_hz", F_CPU);
+    tupan::view::log(tupan::view::LogNivel::INFO, F("boot"),
                      "FSM: OCIOSO aguardando botao SELECT");
     tupan::controller::transicao(tupan::Estado::OCIOSO);
 }
