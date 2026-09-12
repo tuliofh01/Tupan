@@ -1,0 +1,55 @@
+Start testing: Sep 12 10:18 -03
+----------------------------------------------------------
+1/1 Testing: tupan_core_tests
+1/1 Test: tupan_core_tests
+Command: "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/tupan_tests"
+Directory: /home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build
+"tupan_core_tests" start time: Sep 12 10:18 -03
+Output:
+----------------------------------------------------------
+[PASS] psicrometria: rho_v(0°C)≈4,85 — obtido 4.846813
+[PASS] psicrometria: rho_v(30°C)≈30,3 — obtido 30.284747
+[PASS] sorção: vazão 0 ⇒ captação 0
+[PASS] sorção: eficiência 0 ⇒ captação 0
+[PASS] sorção: nunca excede M·q (2,0 kg)
+[PASS] sorção: monotônica em horas
+[PASS] sorção: nominal 8h ∈ (0,2; 1,5) kg — obtido 0.640425
+[PASS] destilação: 0 h ⇒ 0 L
+[PASS] destilação: 0 kg ⇒ 0 L
+[PASS] destilação: T<80 °C ⇒ não libera
+[PASS] destilação: 1 kg libera ~0,9 L (η 0,92) — obtido 0.920000
+[PASS] destilação: 5 kg é limitado por energia (≤ 2,2 L) — obtido 1.739124
+[PASS] ciclo: destilado ≤ sorvido
+[PASS] ciclo: energia > 0
+[PASS] ciclo: L/kWh > 0 — L/kWh 0.377686
+[PASS] ciclo: 0 h noite ⇒ 0 L
+[PASS] conceito: clamp01(1.7)==1.0
+[PASS] conceito: clamp01(-3)==0.0
+[PASS] conceito: clamp01(0.85)==0.85
+[PASS] RNG: mesmo seed ⇒ saída idêntica
+[PASS] RNG: noise 0 ⇒ igual ao determinístico
+[PASS] ML: R² > 0,90 — R²=0.990845
+[PASS] ML: RMSE < 0,10 L — RMSE=0.064424
+[PASS] simulador: IDs sequenciais
+[PASS] simulador: remoção reflete no count
+[PASS] simulador: ciclo cobre a frota
+[PASS] simulador: status coerente com output
+[PASS] simulador: ID inexistente ⇒ previsão 0.0
+[PASS] binlog: arquivo criado e não vazio
+[PASS] binlog: 2 registros escritos (> 2 B)
+[PASS] Monte Carlo: determinístico entre chamadas
+[PASS] Monte Carlo: p05 ≤ p50 ≤ p95
+[PASS] Monte Carlo: média ≈ determinístico (±ruído) — média=0.759221
+[PASS] Monte Carlo: runs=0 ⇒ struct zerada
+[PASS] previsão: unidade ativa > 0 L
+
+== Resumo: 35 testes, 0 falha(s) ==
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"tupan_core_tests" end time: Sep 12 10:18 -03
+"tupan_core_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Sep 12 10:18 -03

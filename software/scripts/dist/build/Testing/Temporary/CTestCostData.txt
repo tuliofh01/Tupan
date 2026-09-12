@@ -1,0 +1,2 @@
+tupan_core_tests 1 0.0166791
+---

@@ -1,0 +1,9 @@
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/tupan_sim.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/tupan_tests.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/tupan_gui.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/tupan_native.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/test.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/edit_cache.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/rebuild_cache.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/tupan_gui_autogen_timestamp_deps.dir
+/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/CMakeFiles/tupan_gui_autogen.dir

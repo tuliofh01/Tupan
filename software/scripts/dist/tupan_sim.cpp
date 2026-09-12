@@ -1,27 +1,27 @@
 // ============================================================================
 //  TUPAN, MÁQUINA DE CHUVA — CLI nativo (tupan_sim)
 //  ---------------------------------------------------------------------------
-//  DIDÁTICA: binário de linha de comando que usa o núcleo header-only.
 //  Uso:
-//    tupan_sim --hours 8 --runs 50000 [--ur 65] [--temp 30] [--fluxo 25]
-//              [--serp 8] [--efic 0.85] [--json]
-//  Saída: produção média, percentis Monte Carlo e métricas do modelo ML.
+//    tupan_sim --night 8 --day 6 --runs 50000 [--ur 65] [--temp 24]
+//              [--fluxo 25] [--efic 0.85] [--aquec 120] [--json] [--log tupan.bin]
+//  Saída: kg sorvidos, litros destilados, percentis Monte Carlo e ML.
 // ============================================================================
 #include "tupan_core.hpp"
 
-#include <cstdlib>
-#include <cstring>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
+
+using namespace tupan; // CLI simples: aliases do núcleo visíveis no arquivo todo
 
 namespace {
 
-// Converte argv "chave valor" em parâmetros — struct simples de configuração.
 struct Opts {
-    double hours = 1.0;
-    int    runs  = 20000;
-    double ur = 60.0, temp = 28.0, fluxo = 25.0, efic = 0.85, serp = 8.0;
-    bool   json = false;
+    Real night = 8.0, day = 6.0;
+    int  runs = 20000;
+    Real ur = 65.0, temp = 24.0, fluxo = 25.0, efic = 0.85, aquec = 120.0;
+    bool json = false;
+    std::string log_path;
 };
 
 [[nodiscard]] Opts parse(int argc, char** argv) {
@@ -29,17 +29,19 @@ struct Opts {
     auto val = [&](int& i) { return std::string(argv[static_cast<std::size_t>(++i)]); };
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[static_cast<std::size_t>(i)];
-        if (a == "--hours" || a == "-h") o.hours = std::stod(val(i));
-        else if (a == "--runs")          o.runs  = std::stoi(val(i));
-        else if (a == "--ur")            o.ur    = std::stod(val(i));
-        else if (a == "--temp")          o.temp  = std::stod(val(i));
-        else if (a == "--fluxo")         o.fluxo = std::stod(val(i));
-        else if (a == "--efic")          o.efic  = std::stod(val(i));
-        else if (a == "--serp")          o.serp  = std::stod(val(i));
-        else if (a == "--json")          o.json  = true;
+        if (a == "--night")   o.night = std::stod(val(i));
+        else if (a == "--day")     o.day   = std::stod(val(i));
+        else if (a == "--runs")    o.runs  = std::stoi(val(i));
+        else if (a == "--ur")      o.ur    = std::stod(val(i));
+        else if (a == "--temp")    o.temp  = std::stod(val(i));
+        else if (a == "--fluxo")   o.fluxo = std::stod(val(i));
+        else if (a == "--efic")    o.efic  = std::stod(val(i));
+        else if (a == "--aquec")   o.aquec = std::stod(val(i));
+        else if (a == "--json")    o.json  = true;
+        else if (a == "--log")     o.log_path = val(i);
         else if (a == "--help") {
-            std::puts("uso: tupan_sim [--hours H] [--runs N] [--ur %] [--temp °C] "
-                      "[--fluxo m3/h] [--efic 0..1] [--serp °C] [--json]");
+            std::puts("uso: tupan_sim [--night h] [--day h] [--runs N] [--ur %] [--temp °C] "
+                      "[--fluxo m³/h] [--efic 0..1] [--aquec °C] [--json] [--log arquivo.bin]");
             std::exit(0);
         }
     }
@@ -58,25 +60,37 @@ int main(int argc, char** argv) {
     e.temperature       = o.temp;
     e.fan_flow          = o.fluxo;
     e.efficiency        = o.efic;
-    e.coil_temperature  = o.serp;
+    e.heater_temp_c     = o.aquec;
 
-    const auto mc = sim.monte_carlo(o.runs, o.hours, 42ULL);
+    // Binlog não-crítico: rotinas e avisos vão p/ arquivo binário.
+    if (!o.log_path.empty()) {
+        sim.attach_logger(o.log_path);
+        sim.blog(LogLevel::INFO, "cli", "simulação iniciada");
+    }
+
+    const auto mc  = sim.monte_carlo(o.runs, o.night, o.day, 42ULL);
+    const auto det = full_cycle(o.night, o.day, o.ur, o.temp, o.fluxo, o.efic, o.aquec);
     double rmse = 0.0, r2 = 0.0;
     sim.ml_accuracy(rmse, r2);
-    const double ml = sim.predict_output(sim.add_tupan(), o.hours);
+    const double ml = sim.predict_output(sim.add_tupan(), o.night, o.day);
 
     if (o.json) {
-        std::printf("{\"horas\":%.2f,\"mc\":{\"media\":%.4f,\"p05\":%.4f,\"p50\":%.4f,\"p95\":%.4f},"
-                    "\"ml\":%.4f,\"rmse\":%.6f,\"r2\":%.4f}\n",
-                    o.hours, mc.mean, mc.p05, mc.p50, mc.p95, ml, rmse, r2);
+        std::printf("{\"noite_h\":%.2f,\"dia_h\":%.2f,\"sorvido_kg\":%.4f,\"destilado_l\":%.4f,"
+                    "\"mc\":{\"media\":%.4f,\"p05\":%.4f,\"p50\":%.4f,\"p95\":%.4f},"
+                    "\"ml\":%.4f,\"rmse\":%.6f,\"r2\":%.4f,\"l_por_kwh\":%.3f}\n",
+                    o.night, o.day, det.water_kg_sorbed, det.distilled_l,
+                    mc.mean, mc.p05, mc.p50, mc.p95, ml, rmse, r2, det.liters_per_kwh);
     } else {
-        std::printf("Tupan, Máquina de Chuva — simulação nativa\n");
-        std::printf("  condições : UR %.0f%% | %.0f °C | %.0f m³/h | η %.2f | serpentina %.0f °C\n",
-                    o.ur, o.temp, o.fluxo, o.efic, o.serp);
-        std::printf("  Monte Carlo (%d corridas, %.1f h):\n", o.runs, o.hours);
-        std::printf("    média %.3f L | p05 %.3f | p50 %.3f | p95 %.3f L\n",
-                    mc.mean, mc.p05, mc.p50, mc.p95);
-        std::printf("  ML grau 2 : %.3f L (RMSE %.4f, R² %.3f)\n", ml, rmse, r2);
+        std::printf("Tupan, Máquina de Chuva — simulação nativa (ciclo sorção/destilação)\n");
+        std::printf("  noite: UR %.0f%% | %.0f °C | %.0f m³/h | η %.2f → %.2f kg sorvidos\n",
+                    o.ur, o.temp, o.fluxo, o.efic, det.water_kg_sorbed);
+        std::printf("  dia  : aquecedor %.0f °C → %.2f L destilados (%.2f L/kWh)\n",
+                    o.aquec, det.distilled_l, det.liters_per_kwh);
+        std::printf("  Monte Carlo (%d corridas): média %.3f L | p05 %.3f | p50 %.3f | p95 %.3f\n",
+                    o.runs, mc.mean, mc.p05, mc.p50, mc.p95);
+        std::printf("  ML grau 2  : %.3f L (RMSE %.4f, R² %.3f)\n", ml, rmse, r2);
     }
+    if (!o.log_path.empty())
+        sim.blog(LogLevel::INFO, "cli", "simulação concluída");
     return 0;
 }

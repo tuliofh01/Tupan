@@ -1,0 +1,1 @@
+/usr/sbin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/tupan_tests.dir/link.d CMakeFiles/tupan_tests.dir/tupan_tests.cpp.o -o tupan_tests

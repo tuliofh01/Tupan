@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build",
+  "command": "/usr/sbin/c++  -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist\" -O3 -DNDEBUG -std=c++23 -Wall -Wextra -Wpedantic -o CMakeFiles/tupan_sim.dir/tupan_sim.cpp.o -c \"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_sim.cpp\"",
+  "file": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_sim.cpp",
+  "output": "CMakeFiles/tupan_sim.dir/tupan_sim.cpp.o"
+},
+{
+  "directory": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build",
+  "command": "/usr/sbin/c++  -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist\" -O3 -DNDEBUG -std=c++23 -Wall -Wextra -Wpedantic -o CMakeFiles/tupan_tests.dir/tupan_tests.cpp.o -c \"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_tests.cpp\"",
+  "file": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_tests.cpp",
+  "output": "CMakeFiles/tupan_tests.dir/tupan_tests.cpp.o"
+},
+{
+  "directory": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build",
+  "command": "/usr/sbin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/tupan_gui_autogen/include\" -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=c++23 -Wall -Wextra -fPIC -o CMakeFiles/tupan_gui.dir/tupan_gui_autogen/mocs_compilation.cpp.o -c \"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/tupan_gui_autogen/mocs_compilation.cpp\"",
+  "file": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/tupan_gui_autogen/mocs_compilation.cpp",
+  "output": "CMakeFiles/tupan_gui.dir/tupan_gui_autogen/mocs_compilation.cpp.o"
+},
+{
+  "directory": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build",
+  "command": "/usr/sbin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build/tupan_gui_autogen/include\" -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=c++23 -Wall -Wextra -fPIC -o CMakeFiles/tupan_gui.dir/tupan_gui.cpp.o -c \"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_gui.cpp\"",
+  "file": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_gui.cpp",
+  "output": "CMakeFiles/tupan_gui.dir/tupan_gui.cpp.o"
+},
+{
+  "directory": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/build",
+  "command": "/usr/sbin/c++ -Dtupan_native_EXPORTS -I\"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist\" -isystem /usr/include/python3.14 -O3 -DNDEBUG -std=c++23 -fPIC -fvisibility=hidden -o CMakeFiles/tupan_native.dir/tupan_pybind.cpp.o -c \"/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_pybind.cpp\"",
+  "file": "/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/software/scripts/dist/tupan_pybind.cpp",
+  "output": "CMakeFiles/tupan_native.dir/tupan_pybind.cpp.o"
+}
+]
