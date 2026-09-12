@@ -3,9 +3,9 @@
 #  ---------------------------------------------------------------------------
 #  Uso local:      cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 #                  cmake --build build -j"$(nproc)"
-#  Uso headless:   -DTUPAN_WITH_STUDIO=OFF -DTUPAN_WITH_GUI=OFF
+#  Uso headless:   -DTUPAN_WITH_STUDIO=OFF -DTUPAN_WITH_SCRIPTING=OFF
 #  Alvos principais: tupan_sim, tupan_tests, tupan_native (pybind),
-#                    tupan_gui (Qt5), tupan_studio (Lua+ImGui+OpenGL).
+#                    tupan_studio (Lua+ImGui+OpenGL), tupan_script (luaaa).
 # ============================================================================
 cmake_minimum_required(VERSION 3.25)
 project(tupan LANGUAGES CXX VERSION 0.1.0)

@@ -172,6 +172,32 @@ scripts/build-standalone.sh          # → dist/standalone/tupan-web
 A imagem Docker (`docker/Dockerfile`, alvo `web`) é a alternativa em contêiner.
 Manual em inglês: `docs/manuais/manual_en-us.md`.
 
+### 4.7 Inventário de software e scripts — propósito e importância
+
+O repositório combina **SOFTWARE** que roda a física, **SCRIPTS** que geram
+artefatos e **INFRAESTRUTURA** de build/entrega. Resumo:
+
+| Categoria | Componente | Propósito | Importância |
+|---|---|---|---|
+| Runtime | `src/core/tupan_core.hpp` | Física C++23 (fonte única) | Garante paridade entre todas as interfaces |
+| Runtime | `tupan_sim` | CLI (1 ciclo → texto/JSON) | Base para scripts e integração |
+| Runtime | `tupan_studio` | UI Lua+ImGui+OpenGL; carrega STL/OBJ | Demonstração visual editável (substitui o Qt) |
+| Runtime | `tupan_script` | Runner Lua headless (luaaa) | Automação em lote sem janela |
+| Runtime | `tupan_native` | Binding pybind11 | Deixa web/pipeline/testes usarem a física C++ |
+| Runtime | `tupan_tests` | 35 testes C++ | Impede regressões numéricas |
+| Runtime | `src/firmware` | Arduino Mega (C++20, MVC/FSM) | Controla o hardware real |
+| Offline | `tools/pipeline/*` | Clima+ML e custo de energia | Base real (não suposição) para análise |
+| Offline | `tools/midia/*` | Renders, gráficos, mapas, mockups | Alimentam relatório e pitch |
+| Offline | `tools/cad/*` | DXF/STL/SCAD + esquema elétrico | Fabricação e segurança elétrica |
+| Offline | `tools/geradores/*` | Relatório, pitch, UML | Entregáveis acadêmicos |
+| Web | `tools/server/*` | Flask REST + UI | "Versão web" da mesma máquina |
+| Testes | `tools/tests/*` | pytest do serviço | Mantém o contrato REST estável |
+| Infra | `CMakeLists.txt`, `scripts/*` | Build por SO | Reprodutibilidade do setup |
+| Infra | `docker/`, `deploy/`, `ci/`, `packaging/` | Empacotar e publicar | Entrega em nuvem/VPS/standalone |
+
+**Regra mental:** só **Runtime** e **Web** simulam a máquina; os demais arquivos
+constroem o projeto ao redor dela (dados, mídia, build e entrega).
+
 ---
 
 ## 5. COMO MONTAR A MÁQUINA

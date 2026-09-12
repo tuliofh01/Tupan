@@ -93,18 +93,17 @@ semi-arid **nocturnal humidity peak** with a purely chemical-thermal cycle:
 
 The full map, data contracts and extension guide live in
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). In short: one **header-only C++23
-core** is the single source of physical truth; CLI, Qt5 GUI, Lua/ImGui/OpenGL
-studio, pybind11 module, Flask service and firmware all consume the same
+core** is the single source of physical truth; CLI, Lua/ImGui/OpenGL studio,
+pybind11 module, Flask service and firmware all consume the same
 contracts; Python **tools** produce media, reports and the data pipeline.
 
 ```
              src/core (tupan_core.hpp — física única)
-                 │        │         │         │
-     tupan_sim ──┘  tupan_gui   tupan_studio   tupan_native (pybind11)
-                 (Qt5)      (Lua+ImGui+GL)         │
-                                                   ├── tools/pipeline (dados/ML)
-                                                   ├── tools/server  (Flask)
-                                                   └── tools/geradores (relatórios)
+                 │          │              │              │
+     tupan_sim ──┘   tupan_studio    tupan_native    tupan_script
+                      (Lua+ImGui+GL)   (pybind11)      (luaaa)
+                                                          │
+                                      tools/pipeline · tools/server · tools/geradores
 ```
 
 ## Tupan Studio (Lua + ImGui + OpenGL)
@@ -134,7 +133,7 @@ cmake --build build -j"$(nproc)"
 Tupan Water Maker/
 ├── CMakeLists.txt              # build raiz (núcleo + studio)
 ├── README.md / README.pt-BR.md
-├── pyproject.toml / setup.py / requirements.txt
+├── pyproject.toml / requirements.txt
 ├── docker/Dockerfile           # multi-stage: build | core | web
 ├── docker-compose.yml
 ├── ci/Jenkinsfile              # pipeline CI/CD
@@ -168,7 +167,7 @@ Tupan Water Maker/
 | **Firmware** | C++20, MVC, FSM (OCIOSO/INTAKE/REGEN/DESTIL/CHEIO/ERRO) |
 | **Core** | Header-only C++23, `-Wall -Wextra -Wpedantic`; 35 CTest cases |
 | **Studio** | Lua DSL (sol2) + Dear ImGui + OpenGL 3.3; custom aligned linear algebra (`union`); loads STL/OBJ CAD meshes; luaaa headless scripting |
-| **Simulators** | Native CLI + Qt5 GUI + pybind11 + Flask — physics parity verified (0.68 L potable @ UR 68 %/24 °C) |
+| **Simulators** | Native CLI + studio + pybind11 + Flask — physics parity verified (0.68 L potable @ UR 68 %/24 °C) |
 | **Data pipeline** | ERA5/Open-Meteo (14,616 h, Petrolina-PE) + ridge/MLP, R² 0.991, RMSE 0.064 L |
 | **Energy** | 1.683 kWh/cycle, 0.43 L/kWh; R$ 2.36/L (full tariff), R$ 0.83/L (TSEE) |
 | **Communication** | Bluetooth HC-05 (UART) + MQTT bridge |

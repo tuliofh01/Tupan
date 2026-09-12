@@ -7,7 +7,7 @@
 //         ↓ dados curados (envelope operacional, coeficientes)
 //    [núcleo nativo] tupan_core.hpp (este arquivo) — física+ML, zero deps
 //         ↓ API C (header)            ↓ pybind (tupan_native)
-//    [serviços]  tupan_sim CLI · tupan_gui Qt5 · Flask web · firmware FSM
+//    [serviços]  tupan_sim CLI · tupan_studio (GL) · Flask web · firmware FSM
 //  Cada serviço consome o MESMO núcleo; dados fluem via CSV/JSON (contratos).
 //
 //  CICLO FÍSICO FINAL (sem compressor — decisão de projeto 2026-09):

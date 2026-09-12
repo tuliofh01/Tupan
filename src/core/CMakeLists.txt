@@ -3,7 +3,6 @@
 #  ---------------------------------------------------------------------------
 #  Alvos:
 #    tupan_sim    → CLI                (tupan_sim.cpp)
-#    tupan_gui    → GUI Qt5 Widgets    (tupan_gui.cpp)   [opcional: TUPAN_WITH_GUI]
 #    tupan_native → módulo Python      (tupan_pybind.cpp)[opcional: TUPAN_WITH_PYBIND]
 #    tupan_tests  → testes unitários   (tupan_tests.cpp) [registrado no CTest]
 #  Convenções modernas: -Wall -Wextra -Wpedantic, C++23, Release -O3.

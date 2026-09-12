@@ -568,7 +568,7 @@ add_image(doc, DIAGRAMAS / 'uml_classes.png',
           'Figura 5 — Diagrama de classes do núcleo de simulação.', Inches(6.2))
 add_heading(doc, '3.2 Núcleo de simulação e discretização', 2)
 add_para(doc, 'O núcleo físico é um cabeçalho C++23 livre de dependências '
-         '(`tupan_core.hpp`), consumido por cinco clientes: CLI, GUI Qt5, '
+         '(`tupan_core.hpp`), consumido por cinco clientes: CLI, studio, '
          'módulo pybind11, servidor Flask e firmware (via espelho de '
          'fórmulas). A integração temporal usa passo analítico fechado para a '
          'sorção (solução exata da EDO) e passo discreto explícito para a '
@@ -789,10 +789,10 @@ add_page_break(doc)
 # ===========================================================================
 add_heading(doc, '5 Instruções Computacionais', 1)
 add_para(doc, 'A reprodução integral deste trabalho requer apenas um '
-         'toolchain GNU com C++23, Python ≥ 3.10, CMake e, opcionalmente, '
-         'Qt5. Os comandos abaixo reproduzem todos os resultados das Seções 4:')
+         'toolchain GNU com C++23, Python ≥ 3.10 e CMake. Os comandos abaixo '
+         'reproduzem todos os resultados das Seções 4:')
 add_subheading(doc, '5.1 Núcleo nativo e testes')
-add_code(doc, 'cmake -S src/core -B build -DCMAKE_BUILD_TYPE=Release\n'
+add_code(doc, 'cmake -S . -B build -DCMAKE_BUILD_TYPE=Release\n'
               'cmake --build build -j"$(nproc)"        # gera src/core e build/tupan_sim\n'
               './build/tupan_tests                     # 35 testes unitários (C++)\n'
               './build/tupan_sim --night 8 --day 6 --ur 68 --temp 24\n'
@@ -967,6 +967,55 @@ add_table(doc, ['Pino Mega', 'Função', 'Observação'],
            ['D22/23/24', 'LEDs verde/amarelo/vermelho', 'R 330 Ω'],
            ['TX1/RX0', 'HC-05', 'divisor resistivo no RX do Mega']],
           widths=[2.6, 5.2, 7.2])
+
+add_heading(doc, 'Apêndice D — Inventário de software e scripts', 1)
+add_para(doc, 'Além do hardware, este trabalho entrega um conjunto de programas. '
+         'Eles se dividem em três categorias que não devem ser confundidas: '
+         '(i) SOFTWARE de execução — roda a física da máquina; '
+         '(ii) SCRIPTS de geração — rodam offline e produzem dados e entregáveis; '
+         '(iii) INFRAESTRUTURA — compila, testa, empacota e publica. '
+         'A separação importa: só a categoria (i) simula o Tupan; as demais '
+         'constroem o projeto ao redor dele.')
+
+add_subheading(doc, 'D.1 Software de execução (runtime) — roda a física')
+add_table(doc, ['Componente', 'Propósito', 'Importância'],
+          [['src/core/tupan_core.hpp (C++23)', 'Núcleo físico header-only: psicrometria, sorção no CaCl₂, destilação, pós-tratamento', 'Fonte única de verdade; garante paridade numérica entre TODAS as interfaces'],
+           ['tupan_sim (CLI)', 'Executa um ciclo e imprime texto ou JSON', 'Base para scripts, testes rápidos e integração; menor superfície de uso'],
+           ['tupan_studio', 'UI interativa: DSL Lua (sol2) + Dear ImGui + OpenGL 3.3; cena 3D e carga de STL/OBJ', 'Substitui a GUI Qt; demonstra e explica o ciclo de forma visual e editável'],
+           ['tupan_script', 'Runner Lua headless (luaaa) que expõe o núcleo como tupan.*', 'Automação em lote e ensino sem janela; liga o núcleo a scripts'],
+           ['tupan_native (.so)', 'Módulo Python via pybind11', 'Permite que web, pipeline e testes usem a física C++ (desempenho e paridade)'],
+           ['tupan_tests', '35 testes unitários (CTest)', 'Trava a correção físico-numérica; impede regressões'],
+           ['src/firmware (Arduino Mega, C++20)', 'Firmware MVC + FSM: OCIOSO/INTAKE/REGEN/DESTIL/CHEIO/ERRO', 'Controla o hardware real (ventoinhas, solenoide, servo, UV, sensores)']],
+          widths=[4.6, 6.2, 6.2])
+
+add_subheading(doc, 'D.2 Scripts de geração (offline) — produzem dados e entregáveis')
+add_table(doc, ['Script', 'Propósito', 'Importância'],
+          [['tools/pipeline/analise_dados.py', 'Baixa ERA5/Open-Meteo e treina o modelo de ML, projetando a produção', 'Dá base climática REAL ao projeto (14.616 h), em vez de suposições'],
+           ['tools/pipeline/custo_energia.py', 'Calcula custo com tarifas ANEEL, bandeiras e Tarifa Social', 'Sustenta a análise econômica (R$/L) e a discussão de equidade'],
+           ['tools/midia/gerar_imagens.py', 'Gera renders de design e gráficos de engenharia', 'Alimenta relatório e pitch com figuras técnicas consistentes'],
+           ['tools/midia/gerar_mapas.py', 'Gera 5 mapas temáticos do Brasil (UR, produção, viabilidade, biomas)', 'Mostra ONDE o Tupan é viável, por estado, a partir de dados'],
+           ['tools/midia/gerar_mockups_app.py', 'Gera 6 telas do app companheiro IoT', 'Especifica a interface móvel futura (contrato visual, não desenho solto)'],
+           ['tools/cad/gerar_cad.py', 'Gera DXF, STL, SCAD e prancha técnica das mesmas dimensões', 'Traduz o desenho em arquivos de fabricação/open CAD; o STL é carregado no studio'],
+           ['tools/cad/esquema_eletrico.py', 'Desenha o esquema elétrico (PNG/SVG)', 'Documenta a fiação e reforça a segurança elétrica (NBR 5410)'],
+           ['tools/geradores/gerar_relatorio.py', 'Monta o artigo ABNT (.docx) com 23 figuras', 'Entregável acadêmico principal; reprodutível a partir do código'],
+           ['tools/geradores/gerar_pitch.py', 'Monta a apresentação (.pptx, 18 slides)', 'Entregável de comunicação; reconstrói-se a partir da mídia gerada'],
+           ['tools/geradores/diagramas_uml.py', 'Gera diagramas UML e o fluxograma do firmware', 'Documenta a arquitetura de software e o comportamento da FSM'],
+           ['tools/server/run_server.py', 'Entrypoint empacotável do serviço web (Waitress/Flask)', 'Permite distribuir o simulador como um executável único']],
+          widths=[5.0, 6.0, 6.0])
+
+add_subheading(doc, 'D.3 Microsserviço web, testes, build e entrega')
+add_table(doc, ['Componente', 'Propósito', 'Importância'],
+          [['tools/server/simulador_tupan.py', 'Microsserviço Flask: REST + UI; usa tupan_native com fallback Python', 'É a "versão web" da mesma máquina; experimentação sem hardware'],
+           ['tools/server/templates/simulacao.html', 'Frontend (sliders, canvas da sala, tabela de frota)', 'Interface acessível no navegador, sem instalar nada'],
+           ['tools/tests/test_simulador.py', 'Testes pytest do serviço e do contrato REST', 'Garante que a API permaneça estável (paridade nativo↔web)'],
+           ['CMakeLists.txt / src/core/CMakeLists.txt', 'Build C++23 (núcleo, studio, scripting, pybind)', 'Reprodutibilidade e detecção de dependências'],
+           ['scripts/build-linux.sh / build-windows.bat', 'Compilação por sistema operacional', 'Facilita setup em Linux (Arch/Debian) e Windows 10/11'],
+           ['scripts/build-docker.sh + docker/Dockerfile + docker-compose.yml', 'Imagem multi-stage (core/web) com healthcheck', 'Entrega isolada e reprodutível; base para nuvem'],
+           ['scripts/deploy-k8s.sh + deploy/k8s/*', 'Deploy em Kubernetes (Deployment/Service/Ingress/HPA)', 'Escala e resiliência em ambiente orquestrado'],
+           ['deploy/vps/*', 'Unit systemd + nginx (reverse proxy/TLS)', 'Alternativa simples para hospedagem em VPS'],
+           ['ci/Jenkinsfile + .github/workflows/ci.yml', 'Pipeline CI/CD: build → teste → mídia → imagem → deploy', 'Automatiza a qualidade e a publicação do projeto'],
+           ['packaging/tupan-web.spec + scripts/build-standalone.sh', 'Executável único do serviço web (PyInstaller)', 'Distribuição sem exigir Python no destino']],
+          widths=[5.4, 6.0, 5.6])
 
 # --- SALVAR ---------------------------------------------------------------
 OUT.parent.mkdir(parents=True, exist_ok=True)

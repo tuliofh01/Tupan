@@ -294,6 +294,10 @@ interactive studio where the interface itself is a Lua script.
   media, pushes, and deploys — to Kubernetes (Deployment/Service/Ingress/HPA,
   runAsNonRoot, readiness/liveness probes) or to a plain VPS (systemd + nginx).
 
+▸ Every program has a documented purpose: runtime (core, CLI, studio, luaaa
+  runner, pybind11 module, firmware) versus offline tools (data pipeline, media,
+  CAD, report/pitch). See ARCHITECTURE.md and the report's Appendix D.
+
 [PT-BR] A interface virou script: mudar um painel ou a cena 3D é editar um .lua
 e recarregar. O mesmo núcleo alimenta CLI, studio, web, app e firmware — há um
 só lugar para consertar a verdade. E o pipeline de entrega é reprodutível de

@@ -216,3 +216,29 @@ this cycle, because the humid night and hot day coincide.
 - Generated media in `docs/midia/{renders,graficos,mapas,mockups,diagramas,cad}`.
 - Architecture: `docs/ARCHITECTURE.md`. Coding standard: `AGENTS.md`
   (didactic comments in PT-BR).
+
+## 11. Software inventory (purpose & importance)
+
+The repository combines **SOFTWARE** that runs the physics, **SCRIPTS** that
+generate artifacts, and **INFRASTRUCTURE** that builds/ships it.
+
+| Category | Component | Purpose | Why it matters |
+|---|---|---|---|
+| Runtime | `src/core/tupan_core.hpp` | C++23 physics (single source) | Numeric parity across all interfaces |
+| Runtime | `tupan_sim` | CLI (one cycle → text/JSON) | Base for scripts and integration |
+| Runtime | `tupan_studio` | Lua+ImGui+OpenGL UI; loads STL/OBJ | Editable visual demo (replaces Qt) |
+| Runtime | `tupan_script` | Headless Lua runner (luaaa) | Windowless automation |
+| Runtime | `tupan_native` | pybind11 binding | Lets web/pipeline/tests use the C++ physics |
+| Runtime | `tupan_tests` | 35 C++ tests | Prevents numeric regressions |
+| Runtime | `src/firmware` | Arduino Mega (C++20, MVC/FSM) | Controls the real hardware |
+| Offline | `tools/pipeline/*` | Climate+ML and energy cost | Real basis (not assumption) for analysis |
+| Offline | `tools/midia/*` | Renders, charts, maps, mockups | Feed the report and pitch |
+| Offline | `tools/cad/*` | DXF/STL/SCAD + schematic | Fabrication and electrical safety |
+| Offline | `tools/geradores/*` | Report, pitch, UML | Academic deliverables |
+| Web | `tools/server/*` | Flask REST + UI | The "web version" of the same machine |
+| Tests | `tools/tests/*` | Service pytest | Keeps the REST contract stable |
+| Infra | `CMakeLists.txt`, `scripts/*` | Per-OS build | Reproducible setup |
+| Infra | `docker/`, `deploy/`, `ci/`, `packaging/` | Package and publish | Cloud/VPS/standalone delivery |
+
+**Mental rule:** only **Runtime** and **Web** simulate the machine; everything
+else builds the project around it.
