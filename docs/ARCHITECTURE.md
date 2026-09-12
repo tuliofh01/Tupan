@@ -36,14 +36,14 @@ linguagens e é o requisito de manutenibilidade (ISO/IEC 25010).
 | Diretório | Propósito | Contém |
 |-----------|-----------|--------|
 | `src/core/` | Núcleo físico e derivados nativos | `tupan_core.hpp`, `tupan_sim.cpp`, `tupan_tests.cpp`, `tupan_constants.json`, `CMakeLists.txt` |
-| `src/studio/` | Studio interativo (UI gráfica) | `math.hpp` (álgebra com `union`), `main.cpp`, `scene.*`, `lua_dsl.*`, `assets/studio.lua` |
+| `src/studio/` | Studio interativo (UI gráfica) | `math.hpp` (álgebra com `union`), `main.cpp`, `scene.*`, `lua_dsl.*`, `mesh_loader.*` (STL/OBJ), `assets/studio.lua` |
 | `src/scripting/` | Runner Lua headless (luaaa) | `main.cpp`, `scripts/ciclo.lua` |
 | `src/bindings/` | Ponte Python | `tupan_pybind.cpp` |
 | `src/firmware/` | Firmware embarcado | `main.cpp`, `tupan_firmware.hpp`, `platformio.ini` |
 | `tools/geradores/` | Entregáveis textuais | relatório, pitch, diagramas UML |
 | `tools/midia/` | Mídia visual | imagens/renders, mapas, mockups |
 | `tools/pipeline/` | Dados e ML | `analise_dados.py`, `custo_energia.py` |
-| `tools/cad/` | Desenho técnico | `esquema_eletrico.py` |
+| `tools/cad/` | Desenho técnico e 3D | `esquema_eletrico.py` (PNG/SVG), `gerar_cad.py` (DXF/STL/SCAD + prancha) |
 | `tools/server/` | Microsserviço | `simulador_tupan.py` + `templates/` |
 | `tools/tests/` | Testes Python | `test_simulador.py` |
 | `data/raw/` | Entradas climáticas | CSVs de origem |
@@ -111,6 +111,9 @@ widgets em **Dear ImGui** e a cena 3D desenhada com a álgebra linear própria
   núcleo C++ como módulo `tupan.*` para scripts headless (`tupan_script`).
 - Ações de menu viram **lambdas** numa tabela de despacho; a física vem de
   `full_cycle(...)` do núcleo (paridade com CLI/pybind/web).
+- O studio carrega **malhas 3D reais** (STL/OBJ) via `mesh_loader.*`: no DSL,
+  `shape = "model"` + `file = "docs/midia/cad/tupan_pecas.stl"`. A malha é
+  normalizada para uma caixa unitária, então `pos`/`size` valem para qualquer arquivo.
 
 ```bash
 ./build/tupan_studio                 # UI interativa

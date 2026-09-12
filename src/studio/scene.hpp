@@ -11,6 +11,7 @@
 #include "lua_dsl.hpp"
 
 #include <string>
+#include <unordered_map>
 
 namespace tupan::studio {
 
@@ -49,7 +50,13 @@ private:
     math::Mat4 proj_{}, view_{};
     int fb_width_ = 1, fb_height_ = 1;
 
+    // Malhas 3D carregadas de arquivo (STL/OBJ), cacheadas por caminho.
+    struct GpuMesh { unsigned int vao = 0, vbo = 0, ebo = 0; int count = 0; };
+    std::unordered_map<std::string, GpuMesh> models_;
+    const GpuMesh* modelFor(const StudioConfig& cfg, const std::string& file);
+
     void drawMesh(const Mesh& m) const;
+    void drawGpuMesh(const GpuMesh& m) const;
     void drawObject(const SceneObject& o, const StudioConfig& cfg,
                     const SimState& sim, float time_s, Mode mode, bool spin);
 };

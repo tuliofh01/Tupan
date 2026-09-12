@@ -399,6 +399,21 @@ add_rect(slide, "Reprodutível: build → teste → mídia → imagem → deploy
 add_footer(slide, 15)
 
 # ===========================================================================
+# SLIDE 16 — CAD & 3D
+# ===========================================================================
+slide = new_slide()
+add_title(slide, "CAD & 3D", "Geometria gerada do mesmo modelo paramétrico")
+add_image(slide, MEDIA / "cad" / "tupan_cad.png", 0.4, 1.75, 7.0)
+add_image(slide, MEDIA / "cad" / "esquema_eletrico.png", 7.7, 1.75, 5.2)
+add_bullets(slide, [
+    "tupan_cad.png: vistas frontal/superior/lateral (carcaça 34×24×32 cm)",
+    "tupan_pecas.stl: malha 3D exibida no Tupan Studio",
+    "tupan.scad: modelo paramétrico OpenSCAD; DXF para desenho técnico",
+    "esquema elétrico em PNG/SVG (Arduino Mega + sensores + atuadores)",
+], 0.6, 6.05, 12.2, 1.0, size=12)
+add_footer(slide, 16)
+
+# ===========================================================================
 # SLIDE 16 — MERCADO
 # ===========================================================================
 slide = new_slide()
@@ -415,7 +430,7 @@ for i, (title, desc, color) in enumerate(segments):
     add_rect(slide, title, x, y, 2.6, 0.8, color, BRANCO, size=17)
     add_text(slide, desc, x + 2.8, y + 0.12, 3.0, 0.6, size=14, color=CINZA)
 add_rect(slide, "1 a 2 pessoas por ciclo · foco em consumo humano direto", 3.0, 6.2, 7.3, 0.8, AZUL_CLARO, AZUL, size=17)
-add_footer(slide, 16)
+add_footer(slide, 17)
 
 # ===========================================================================
 # SLIDE 17 — PRÓXIMOS PASSOS / ENCERRAMENTO
@@ -438,7 +453,7 @@ for i, (num, title, desc) in enumerate(steps):
 add_text(slide, "Tupan, Máquina de Chuva", 1.0, 5.5, 11.3, 0.5, size=22, color=BRANCO, bold=True, align=PP_ALIGN.CENTER)
 add_text(slide, "Água do ar. Onde você precisar.", 1.0, 6.1, 11.3, 0.4, size=16, color=AZUL_CLARO, align=PP_ALIGN.CENTER)
 add_text(slide, "github.com/tuliofh01/Tupan · MIT", 1.0, 6.6, 11.3, 0.4, size=12, color=BRANCO, align=PP_ALIGN.CENTER)
-add_footer(slide, 17)
+add_footer(slide, 18)
 
 # ---------------------------------------------------------------------------
 # Salvar

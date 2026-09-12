@@ -110,6 +110,8 @@ a cena 3D são tabelas declarativas — **sem recompilar** para mudar a UI.
   `alignas(16)` com `union` (colunas/floats), operações `constexpr`.
 - **sol2** lê o DSL; **Dear ImGui** + **GLFW** + **OpenGL 3.3** desenham widgets
   e cena; ações de menu passam por uma tabela de **lambdas**.
+- **Carga de CAD/3D** (`mesh_loader.cpp`): `shape = "model"` + `file = "...stl"`
+  renderiza malhas STL/OBJ reais (normalizadas para caixa unitária; `pos`/`size` valem).
 - **luaaa** (`src/scripting`) expõe o núcleo ao Lua headless (`tupan.*`).
 
 ```bash
@@ -148,7 +150,7 @@ Tupan Water Maker/
 | **Microcontrolador** | Arduino Mega 2560 (ATmega2560) |
 | **Firmware** | C++20, MVC, FSM (OCIOSO/INTAKE/REGEN/DESTIL/CHEIO/ERRO) |
 | **Núcleo** | C++23 header-only, `-Wall -Wextra -Wpedantic`; testes via CTest |
-| **Studio** | Lua DSL (sol2) + Dear ImGui + OpenGL 3.3; álgebra com `union`; luaaa headless |
+| **Studio** | Lua DSL (sol2) + Dear ImGui + OpenGL 3.3; álgebra com `union`; carrega malhas STL/OBJ; luaaa headless |
 | **Simuladores** | CLI + studio + pybind11 + Flask — paridade física (0,68 L potável @ UR 68 %/24 °C) |
 | **Pipeline de dados** | ERA5/Open-Meteo (14.616 h) + ridge/MLP, R² 0.991, RMSE 0.064 L |
 | **Energia** | 1,683 kWh/ciclo, 0,43 L/kWh; R$ 2,36/L (rede) e R$ 0,83/L (TSEE) |
@@ -195,6 +197,7 @@ python3 tools/midia/gerar_imagens.py
 python3 tools/midia/gerar_mapas.py
 python3 tools/geradores/gerar_relatorio.py
 python3 tools/geradores/gerar_pitch.py
+python3 tools/cad/gerar_cad.py        # DXF/STL/SCAD + prancha técnica
 ```
 
 ## Docker e CI/CD

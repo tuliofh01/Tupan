@@ -54,6 +54,7 @@ Shape shapeFrom(const std::string& s) {
     if (s == "sphere") return Shape::Sphere;
     if (s == "fan") return Shape::Fan;
     if (s == "coil") return Shape::Coil;
+    if (s == "model") return Shape::Model;
     return Shape::Box;
 }
 
@@ -89,6 +90,9 @@ StudioConfig loadConfig(const std::string& path) {
     StudioConfig cfg;
     cfg.title = root.get_or("title", cfg.title);
     cfg.version = root.get_or("version", cfg.version);
+    // Guarda o diretório do DSL para resolver `file` relativos dos modelos.
+    const std::size_t slash = path.find_last_of("/\\");
+    cfg.baseDir = (slash == std::string::npos) ? "." : path.substr(0, slash);
 
     // --- tema -------------------------------------------------------------
     if (sol::optional<sol::table> th = root["theme"]) {
@@ -154,6 +158,7 @@ StudioConfig loadConfig(const std::string& path) {
             obj.pos = readVec3(t["pos"], obj.pos);
             obj.size = readVec3(t["size"], obj.size);
             obj.color = readColor(t["color"], obj.color);
+            obj.file = t.get_or("file", std::string(""));
             cfg.scene.push_back(std::move(obj));
         });
     }

@@ -22,10 +22,12 @@ Este arquivo orienta agentes/colaboradores automáticos que trabalham no reposit
 
 - `src/core` — física C++23 (fonte única de verdade), CLI, testes.
 - `src/studio` — UI interativa: DSL **Lua** (estilo JSON) + **sol2** + **Dear
-  ImGui** + **OpenGL 3.3** + álgebra linear própria (`math.hpp`, com `union`).
+  ImGui** + **OpenGL 3.3** + álgebra linear própria (`math.hpp`, com `union`) +
+  carga de malhas 3D **STL/OBJ** (`mesh_loader.*`).
 - `src/bindings` — módulo Python (pybind11).
 - `src/firmware` — Arduino Mega (C++20, MVC/FSM).
-- `tools/{geradores,midia,pipeline,cad,server,tests}` — scripts por propósito.
+- `tools/{geradores,midia,pipeline,cad,server,tests}` — scripts por propósito
+  (`tools/cad/gerar_cad.py` gera DXF/STL/SCAD + prancha).
 - `data/{raw,processed,results}` — dados; `docs/` — entregáveis e mídia.
 - `scripts/` — build; `deploy/` — k8s e VPS; `ci/` — Jenkins/GitHub Actions.
 

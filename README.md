@@ -117,6 +117,8 @@ declarative tables — no recompilation needed to change the interface.
   `Mat4` with a `union` exposing columns/floats, `constexpr` ops — minimal per-frame overhead.
 - **sol2** reads the declarative Lua DSL; **Dear ImGui** + **GLFW** + **OpenGL 3.3**
   render the widgets and the 3D scene; menu actions are dispatched through **lambdas**.
+- **CAD/3D loading** (`mesh_loader.cpp`): `shape = "model"` + `file = "...stl"` renders
+  real STL/OBJ meshes (normalized to a unit box, so `pos`/`size` still apply).
 - **luaaa** (`src/scripting`) exposes the core to headless Lua scripts (`tupan.*`).
 
 ```bash
@@ -165,7 +167,7 @@ Tupan Water Maker/
 | **Microcontroller** | Arduino Mega 2560 (ATmega2560) |
 | **Firmware** | C++20, MVC, FSM (OCIOSO/INTAKE/REGEN/DESTIL/CHEIO/ERRO) |
 | **Core** | Header-only C++23, `-Wall -Wextra -Wpedantic`; 35 CTest cases |
-| **Studio** | Lua DSL (sol2) + Dear ImGui + OpenGL 3.3; custom aligned linear algebra (`union`); luaaa headless scripting |
+| **Studio** | Lua DSL (sol2) + Dear ImGui + OpenGL 3.3; custom aligned linear algebra (`union`); loads STL/OBJ CAD meshes; luaaa headless scripting |
 | **Simulators** | Native CLI + Qt5 GUI + pybind11 + Flask — physics parity verified (0.68 L potable @ UR 68 %/24 °C) |
 | **Data pipeline** | ERA5/Open-Meteo (14,616 h, Petrolina-PE) + ridge/MLP, R² 0.991, RMSE 0.064 L |
 | **Energy** | 1.683 kWh/cycle, 0.43 L/kWh; R$ 2.36/L (full tariff), R$ 0.83/L (TSEE) |
@@ -218,6 +220,8 @@ pio run        # or open tupan_firmware.hpp + main.cpp in the Arduino IDE
 python3 tools/midia/gerar_imagens.py   # design renders + engineering charts
 python3 tools/midia/gerar_mapas.py     # thematic Brazil maps
 python3 tools/midia/gerar_mockups_app.py
+python3 tools/cad/gerar_cad.py          # DXF/STL/SCAD + technical board
+python3 tools/cad/esquema_eletrico.py   # electrical schematic (PNG/SVG)
 python3 tools/geradores/diagramas_uml.py
 python3 tools/geradores/gerar_relatorio.py
 python3 tools/geradores/gerar_pitch.py

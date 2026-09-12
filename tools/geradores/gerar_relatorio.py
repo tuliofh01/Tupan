@@ -43,6 +43,8 @@ MIDIA: Final[Path] = DOC_DIR / "midia"
 GRAF: Final[Path] = MIDIA / "graficos"
 RENDERS: Final[Path] = MIDIA / "renders"
 MAPAS: Final[Path] = MIDIA / "mapas"
+DIAGRAMAS: Final[Path] = MIDIA / "diagramas"
+MOCKUPS: Final[Path] = MIDIA / "mockups"
 DADOS: Final[Path] = RAIZ / "data"
 OUT: Final[Path] = DOC_DIR / "relatorios" / "relatorio_descritivo.docx"
 DOC_DIR.mkdir(parents=True, exist_ok=True)
@@ -379,6 +381,14 @@ add_para(doc, 'O nome Tupan deriva do tupi-guarani para "trovão" ou "espírito 
 # ===========================================================================
 add_heading(doc, '2 Fundamentação Teórica', 1)
 
+add_image(doc, RENDERS / 'render_corte_noturno.png',
+          'Figura 1 — Corte do modo SORÇÃO (noite): ventoinhas forçam o ar '
+          'úmido pelo leito de CaCl₂.', Inches(6.0))
+add_image(doc, RENDERS / 'render_corte_diurno.png',
+          'Figura 2 — Corte do modo REGENERAÇÃO (dia): servo isola o ar, '
+          'solenoide a 120 °C libera vapor; vidraria, filtro e UV-C.', Inches(6.0))
+add_image(doc, RENDERS / 'render_ciclo_4etapas.png',
+          'Figura 3 — Ciclo diário em quatro etapas auditáveis.', Inches(6.5))
 add_heading(doc, '2.1 Psicrometria e disponibilidade de vapor', 2)
 add_para(doc, 'A pressão de saturação do vapor d\'água é descrita pela equação '
          'de Magnus, forma empírica da integração da relação de '
@@ -551,6 +561,11 @@ add_para(doc, 'A pinagem é única fonte de verdade e coincide com o esquemátic
          '(tudo `F()`/PROGMEM) e com log `LOG_*` de cada transição, de modo '
          'que toda decisão da FSM seja auditável em campo.')
 
+add_image(doc, RENDERS / 'render_3d_conceito.png',
+          'Figura 4 — Vista 3D conceitual do dispositivo (carcaça 34 × 24 × 32 cm).',
+          Inches(5.8))
+add_image(doc, DIAGRAMAS / 'uml_classes.png',
+          'Figura 5 — Diagrama de classes do núcleo de simulação.', Inches(6.2))
 add_heading(doc, '3.2 Núcleo de simulação e discretização', 2)
 add_para(doc, 'O núcleo físico é um cabeçalho C++23 livre de dependências '
          '(`tupan_core.hpp`), consumido por cinco clientes: CLI, GUI Qt5, '
@@ -654,10 +669,16 @@ add_para(doc, 'A análise das 14.616 horas indica umidade relativa noturna '
          'confirma quantitativamente a hipótese de assincronismo: existe '
          'vapor disponível à noite e calor disponível ao dia, na mesma '
          'localidade e com regularidade estatística [1], [20].')
-add_image(doc, GRAF / 'grafico_ml_vs_fisica.png',
-          'Figura 1 — Modelo de ML versus física determinística (validação '
-          'do preditor de produção).')
 
+add_image(doc, MAPAS / 'mapa_ur_noturna.png',
+          'Figura 6 — UR noturna média por estado (capitais, Open-Meteo/ERA5 2024).',
+          Inches(6.3))
+add_image(doc, MAPAS / 'mapa_producao_anual.png',
+          'Figura 7 — Produção anual estimada por estado (L/ano).', Inches(6.3))
+add_image(doc, GRAF / 'grafico_producao_vs_ur.png',
+          'Figura 8 — Produção potável em função da umidade relativa.', Inches(5.9))
+add_image(doc, GRAF / 'grafico_ciclo_diurno.png',
+          'Figura 9 — Ciclo diurno de umidade relativa e temperatura.', Inches(6.1))
 add_heading(doc, '4.2 Produção de água, energia e custo', 2)
 add_para(doc, 'Sob o ciclo padrão (8 h de noite + 6 h de dia), o núcleo '
          'reporta massa sorvida de 0,75 kg, 0,69 L destilados e 0,68 L '
@@ -680,6 +701,12 @@ add_para(doc, 'A eficiência energético-hídrica resultante é de 0,43 L/kWh. '
          'mais barato que a garrafinha e socialmente competitivo sob Tarifa '
          'Social — seu valor é autonomia, não preço.')
 
+add_image(doc, GRAF / 'grafico_balanco_energia.png',
+          'Figura 10 — Balanço de energia por ciclo e por subsistema.', Inches(6.2))
+add_image(doc, GRAF / 'grafico_custo_comparativo.png',
+          'Figura 11 — Custo por litro: Tupan × galão × garrafinha.', Inches(5.9))
+add_image(doc, GRAF / 'grafico_projecao_anual.png',
+          'Figura 12 — Projeção anual de produção em Petrolina-PE.', Inches(6.2))
 add_heading(doc, '4.3 Desempenho do modelo preditivo', 2)
 add_para(doc, 'A regressão ridge de grau 2 com 23 features atinge R² = 0,991 '
          'e RMSE = 0,064 L, superando o baseline de rede neural (MLP 64/64, '
@@ -688,6 +715,9 @@ add_para(doc, 'A regressão ridge de grau 2 com 23 features atinge R² = 0,991 '
          '(saturação do leito e fração de liberação), evidência de que '
          'mecanismo e dados são complementares, não substitutos [11], [12].')
 
+add_image(doc, GRAF / 'grafico_ml_vs_fisica.png',
+          'Figura 13 — Validação do preditor: ML versus física determinística.',
+          Inches(6.2))
 add_heading(doc, '4.4 Impacto de adoção em massa e advertências', 2)
 add_para(doc, 'A modelagem de N = 100.000 unidades em operação contínua '
          'fornece os agregados a seguir, com as respectivas advertências:')
@@ -706,6 +736,9 @@ add_callout(doc, 'Advertência central deste trabalho',
             'verdes: são condições de contorno para que o Tupan não recrie o '
             'problema que pretende resolver.', "FFF3E0")
 
+add_image(doc, GRAF / 'grafico_impacto_escala.png',
+          'Figura 14 — Impacto agregado em 1 mil / 10 mil / 100 mil unidades.',
+          Inches(6.4))
 add_heading(doc, '4.5 Comparação de biomas e transferibilidade', 2)
 add_para(doc, 'Como o ciclo depende de umidade noturna (combustível) e calor '
          'diurno (regeneração), sua transferibilidade pode ser avaliada por '
@@ -723,6 +756,11 @@ add_para(doc, 'Regra de bolso: UR noturna ≥ 60 % ⇒ projeto-base; 40–60 % �
          'sertão não é o pior lugar do mundo para extrair água do ar — é um '
          'dos melhores, porque a noite úmida e o dia quente coincidem.')
 
+add_image(doc, MAPAS / 'mapa_biomas.png',
+          'Figura 15 — Biomas dominantes por estado (contexto de transferibilidade).',
+          Inches(6.3))
+add_image(doc, MAPAS / 'mapa_viabilidade.png',
+          'Figura 16 — Viabilidade técnica por estado (UR noturna ≥ 60 %).', Inches(6.3))
 add_heading(doc, '4.6 Conformidade regulatória e normativa', 2)
 add_para(doc, 'Um dispositivo de água potável no Brasil está sujeito a um '
          'arcabouço denso. O projeto foi concebido para esse arcabouço desde '
@@ -794,6 +832,12 @@ add_para(doc, 'Os contratos de dados entre serviços são JSON/CSV estáveis '
 # ===========================================================================
 # 6 CONSIDERAÇÕES FINAIS
 # ===========================================================================
+add_image(doc, MOCKUPS / 'app_01_painel.png',
+          'Figura 17 — App companheiro: painel de estado da FSM e nível da bacia.',
+          Inches(3.0))
+add_image(doc, MOCKUPS / 'app_04_controles.png',
+          'Figura 18 — App companheiro: controles de PWM, solenoide e servo-registro.',
+          Inches(3.0))
 add_heading(doc, '6 Considerações Finais', 1)
 add_para(doc, 'O trabalho demonstra a viabilidade técnica de um gerador de '
          'água atmosférica sem compressor para o semiárido brasileiro, com '
@@ -883,6 +927,19 @@ add_para(doc, 'Custo estimado em peças novas ≈ R$ 447; com componentes '
          'comumente já possuídos (Mega, HC-05, servos, ventoinhas), o custo '
          'real tende a R$ 300–350.')
 
+add_image(doc, MAPAS / 'mapa_capitais.png',
+          'Figura 19 — Capitais usadas na amostra climática.', Inches(6.3))
+add_image(doc, GRAF / 'grafico_cronograma.png',
+          'Figura 20 — Cronograma do projeto (2026.2).', Inches(6.2))
+add_image(doc, DIAGRAMAS / 'fluxograma_firmware.png',
+          'Figura 21 — Fluxograma da FSM do firmware (MVC, Arduino Mega).',
+          Inches(6.2))
+add_image(doc, MIDIA / 'cad' / 'tupan_cad.png',
+          'Figura 22 — Prancha técnica: vistas frontal/superior/lateral (cm).',
+          Inches(6.4))
+add_image(doc, MIDIA / 'cad' / 'esquema_eletrico.png',
+          'Figura 23 — Esquema elétrico (Arduino Mega + sensores + atuadores).',
+          Inches(6.4))
 add_heading(doc, 'Apêndice B — Glossário', 1)
 glossary = [
     ('AWG', 'Atmospheric Water Generator — gerador de água atmosférica.'),

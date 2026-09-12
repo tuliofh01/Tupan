@@ -51,7 +51,8 @@ target_link_libraries(imgui PUBLIC PkgConfig::GLFW OpenGL::GL)
 add_executable(tupan_studio
     main.cpp
     scene.cpp
-    lua_dsl.cpp)
+    lua_dsl.cpp
+    mesh_loader.cpp)
 target_include_directories(tupan_studio PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../core
@@ -66,6 +67,7 @@ target_link_libraries(tupan_studio PRIVATE
     OpenGL::GL)
 target_compile_options(tupan_studio PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_definitions(tupan_studio PRIVATE
-    TUPAN_STUDIO_DSL="${CMAKE_CURRENT_SOURCE_DIR}/assets/studio.lua")
+    TUPAN_STUDIO_DSL="${CMAKE_CURRENT_SOURCE_DIR}/assets/studio.lua"
+    TUPAN_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
 message(STATUS "Tupan Studio: Lua + sol2 + Dear ImGui (${imgui_SOURCE_DIR}) + OpenGL.")

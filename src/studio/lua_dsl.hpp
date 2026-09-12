@@ -39,7 +39,7 @@ struct Panel {
 struct MenuItem { std::string label, action; };
 struct Menu { std::string label; std::vector<MenuItem> items; };
 
-enum class Shape { Box, Cylinder, Sphere, Fan, Coil };
+enum class Shape { Box, Cylinder, Sphere, Fan, Coil, Model };
 
 struct SceneObject {
     std::string id;
@@ -47,6 +47,7 @@ struct SceneObject {
     Vec3 pos{0, 0, 0};
     Vec3 size{1, 1, 1};
     Color color{1, 1, 1};
+    std::string file;  // caminho da malha (STL/OBJ) quando shape = "model"
 };
 
 struct Camera {
@@ -67,6 +68,7 @@ struct Theme {
 struct StudioConfig {
     std::string title = "Tupan Studio";
     std::string version = "0.1.0";
+    std::string baseDir;  // diretório do .lua, para resolver caminhos relativos
     Theme theme;
     std::vector<Menu> menu;
     std::vector<Panel> panels;

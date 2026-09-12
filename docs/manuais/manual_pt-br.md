@@ -105,7 +105,9 @@ Saída típica (condições médias de Petrolina):
 
 O **Tupan Studio** lê a interface de `src/studio/assets/studio.lua` (DSL com
 cara de JSON: menus, painéis e objetos 3D). Edite o `.lua` e use o menu
-**Arquivo → Recarregar DSL** — sem recompilar.
+**Arquivo → Recarregar DSL** — sem recompilar. Ele também **carrega CAD/3D
+reais** (STL/OBJ): use `shape = "model"` e `file = "docs/midia/cad/tupan_pecas.stl"`.
+Para regenerar o CAD: `python3 tools/cad/gerar_cad.py` (DXF/STL/SCAD + prancha).
 
 ### 4.2 Simulador web (Flask) — para experimentar sem hardware
 

@@ -285,6 +285,10 @@ interactive studio where the interface itself is a Lua script.
   single-header C++→Lua binder) exposes the physics as `tupan.*`, so a headless
   script can sweep humidity and print liters/kWh without opening a window.
 
+▸ CAD in the scene: a small normalizing loader renders real STL/OBJ meshes, so
+  the Lua DSL can say shape="model", file="...stl" and reuse the same pos/size
+  transform. The project also emits DXF/STL/SCAD from the same dimensions.
+
 ▸ Delivery is code too: a multi-stage Docker image (core CLI + gunicorn web
   with a /health probe) and a Jenkinsfile that builds, tests, regenerates all
   media, pushes, and deploys — to Kubernetes (Deployment/Service/Ingress/HPA,

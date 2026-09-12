@@ -80,7 +80,11 @@ return {
             { id = "vidraria",  shape = "sphere",   pos = {  0.8, 0.95, 0.0 }, size = { 1.0, 1.0, 1.0 }, color = { 0.25, 0.72, 1.00 } },
             { id = "solenoide", shape = "coil",     pos = { -0.1, 0.20, 0.9 }, size = { 1.6, 0.5, 0.5 }, color = { 0.72, 0.23, 0.12 } },
             { id = "filtro",    shape = "cylinder", pos = {  2.0, 0.45, 0.0 }, size = { 0.5, 0.8, 0.5 }, color = { 0.44, 0.88, 0.78 } },
-            { id = "bacia",     shape = "box",      pos = {  3.0, 0.35, 0.0 }, size = { 1.1, 0.6, 1.3 }, color = { 0.20, 0.50, 0.90 } }
+            { id = "bacia",     shape = "box",      pos = {  3.0, 0.35, 0.0 }, size = { 1.1, 0.6, 1.3 }, color = { 0.20, 0.50, 0.90 } },
+            -- CAD real: malha STL/OBJ carregada de arquivo (shape = "model").
+            -- Edite `file` (relativo à raiz do repo) e use Arquivo → Recarregar DSL.
+            { id = "cad_carcaca", shape = "model", file = "docs/midia/cad/tupan_pecas.stl",
+              pos = { 0.0, 1.0, -2.0 }, size = { 3.2, 3.2, 3.2 }, color = { 0.82, 0.86, 0.92 } }
         }
     }
 }

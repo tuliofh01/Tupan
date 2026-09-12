@@ -2,6 +2,7 @@
 //  TUPAN STUDIO — Renderizador OpenGL 3.3
 // ============================================================================
 #include "scene.hpp"
+#include "mesh_loader.hpp"
 
 #include <GL/glew.h>
 
@@ -243,6 +244,13 @@ void SceneRenderer::shutdown() {
         if (m->vbo) glDeleteBuffers(1, &m->vbo);
         if (m->ebo) glDeleteBuffers(1, &m->ebo);
     }
+    for (auto& [key, m] : models_) {
+        (void)key;
+        if (m.vao) glDeleteVertexArrays(1, &m.vao);
+        if (m.vbo) glDeleteBuffers(1, &m.vbo);
+        if (m.ebo) glDeleteBuffers(1, &m.ebo);
+    }
+    models_.clear();
     if (program_) glDeleteProgram(program_);
 }
 
@@ -257,6 +265,62 @@ void SceneRenderer::drawMesh(const Mesh& m) const {
     if (m.indexed) glDrawElements(GL_TRIANGLES, m.count, GL_UNSIGNED_INT, nullptr);
     else glDrawArrays(GL_LINES, 0, m.count);
     glBindVertexArray(0);
+}
+
+void SceneRenderer::drawGpuMesh(const GpuMesh& m) const {
+    if (!m.vao) return;
+    glBindVertexArray(m.vao);
+    glDrawElements(GL_TRIANGLES, m.count, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+}
+
+// Carrega (uma vez) e devolve a malha de arquivo pedida pelo DSL. Tenta o
+// caminho como veio, relativo ao diretório do .lua e, por fim, à raiz do repo.
+const SceneRenderer::GpuMesh* SceneRenderer::modelFor(const StudioConfig& cfg,
+                                                      const std::string& file) {
+    if (file.empty()) return nullptr;
+    const auto cached = models_.find(file);
+    if (cached != models_.end()) return cached->second.count > 0 ? &cached->second : nullptr;
+
+    std::vector<std::string> candidates{file, cfg.baseDir + "/" + file};
+#ifdef TUPAN_ASSET_DIR
+    candidates.push_back(std::string(TUPAN_ASSET_DIR) + "/" + file);
+#endif
+    MeshData data;
+    for (const std::string& candidate : candidates) {
+        try {
+            data = loadMeshFile(candidate);
+            if (!data.empty()) break;
+        } catch (const std::exception&) {
+            // tenta o próximo candidato
+        }
+    }
+
+    GpuMesh gm;
+    if (!data.empty()) {
+        glGenVertexArrays(1, &gm.vao);
+        glBindVertexArray(gm.vao);
+        glGenBuffers(1, &gm.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, gm.vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     static_cast<GLsizeiptr>(data.vertices.size() * sizeof(float)),
+                     data.vertices.data(), GL_STATIC_DRAW);
+        glGenBuffers(1, &gm.ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gm.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     static_cast<GLsizeiptr>(data.indices.size() * sizeof(unsigned int)),
+                     data.indices.data(), GL_STATIC_DRAW);
+        const GLsizei stride = 6 * sizeof(float);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride,
+                              reinterpret_cast<void*>(3 * sizeof(float)));
+        gm.count = static_cast<int>(data.indices.size());
+        glBindVertexArray(0);
+    }
+    const auto inserted = models_.emplace(file, gm);
+    return inserted.first->second.count > 0 ? &inserted.first->second : nullptr;
 }
 
 void SceneRenderer::drawObject(const SceneObject& o, const StudioConfig& cfg,
@@ -301,6 +365,21 @@ void SceneRenderer::drawObject(const SceneObject& o, const StudioConfig& cfg,
         color = {o.color.r * glow, o.color.g * glow, o.color.b * glow};
     }
     if (blueprint) { color = {0.45F, 0.72F, 1.0F}; light = false; }
+
+    // Modelo 3D carregado de arquivo (STL/OBJ): desenha a malha normalizada.
+    if (o.shape == Shape::Model) {
+        const GpuMesh* gm = modelFor(cfg, o.file);
+        if (gm) {
+            const Mat4 mvp = proj_ * view_ * model;
+            glUniformMatrix4fv(uModel_, 1, GL_FALSE, model.data());
+            glUniformMatrix4fv(uMvp_, 1, GL_FALSE, mvp.data());
+            glUniform3f(uColor_, color[0], color[1], color[2]);
+            glUniform1f(uLight_, light ? 1.0F : 0.0F);
+            drawGpuMesh(*gm);
+            return;
+        }
+        // Se falhar o carregamento, cai no cubo para não sumir da cena.
+    }
 
     // Nível de água na bacia: um volume interno que cresce com os litros.
     if (o.id.find("bacia") != std::string::npos) {

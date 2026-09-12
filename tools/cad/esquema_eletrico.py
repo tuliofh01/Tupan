@@ -73,6 +73,15 @@ legend_elements = [
 ax.legend(handles=legend_elements, loc='lower center', ncol=5, fontsize=8)
 
 plt.tight_layout()
-out = '/home/tuliofh01/Documents/Arquivo Acadêmico/PUC-MG/Engenharia de Computação/Disciplinas/2026.2/Iot & PLCs/Tupan Water Maker/Documentação Oficial/Arquivos CAD/esquema_eletrico.png'
-plt.savefig(out, dpi=150, bbox_inches='tight')
-print('Salvo:', out)
+
+# CAMINHOS — o script vive em tools/cad/ (raiz = parents[2]); saída em docs/midia/cad.
+from pathlib import Path as _Path
+_BASE = _Path(__file__).resolve().parents[2]
+_OUT_DIR = _BASE / "docs" / "midia" / "cad"
+_OUT_DIR.mkdir(parents=True, exist_ok=True)
+out_png = _OUT_DIR / "esquema_eletrico.png"
+out_svg = _OUT_DIR / "esquema_eletrico.svg"
+plt.savefig(out_png, dpi=150, bbox_inches="tight")
+plt.savefig(out_svg, bbox_inches="tight")
+print("Salvo:", out_png)
+print("Salvo:", out_svg)
