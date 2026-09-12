@@ -1,0 +1,365 @@
+═══════════════════════════════════════════════════════════════════════════════
+ TUPAN, MÁQUINA DE CHUVA — LinkedIn Academic Article (plain-text, Unicode)
+ Status: v2 · Language: English (with PT-BR general comments) · SEO-ready
+ Author: Túlio Ferreira Horta — Computer Engineering, PUC Minas (2026.2)
+ Course: IoT & PLCs · Repo: github.com/tuliofh01/Tupan
+ Adds: interactive Lua/ImGui/OpenGL studio, luaaa scripting, Docker/K8s CI/CD.
+ Tip: paste directly into LinkedIn; the ═ box lines and ▸ bullets survive the
+      plain-text editor and keep the visual rhythm of the article.
+═══════════════════════════════════════════════════════════════════════════════
+
+───────────────────────────────────────────────────────────────────────────────
+HEADLINE (first 200 characters — LinkedIn truncates the feed preview here)
+───────────────────────────────────────────────────────────────────────────────
+Water from air, without a compressor: how a calcium-chloride bed, a solenoid
+and recycled lab glassware can harvest ~0.7 L of drinking water per night in
+the Brazilian semi-arid region — and what 100,000 of these devices would mean.
+
+───────────────────────────────────────────────────────────────────────────────
+[PT-BR — comentário geral para o feed brasileiro]
+───────────────────────────────────────────────────────────────────────────────
+💡 Água do ar, sem compressor e sem refrigeração: à noite, ventoinhas puxam o
+ar úmido do sertão por um leito de cloreto de cálcio; de dia, uma solenoide
+aquece o sal a 120 °C e o vapor condensa numa vidraria de laboratório
+reciclada. Depois: filtro mineralizante, UV-C e uma bacia com torneira.
+~0,7 L/ciclo, ~2,4 kWh/L. Projeto acadêmico da PUC Minas — código e física
+abertos no GitHub. Segue o artigo em inglês (com comentários em PT-BR).
+
+───────────────────────────────────────────────────────────────────────────────
+1 · THE PROBLEM: THIRST ON TOP OF DROUGHT
+───────────────────────────────────────────────────────────────────────────────
+Over 30 million people live in the Brazilian semi-arid region (semiárido).
+Groundwater is frequently saline; water trucks (caminhões-pipa) define household
+hydric logistics; distributed solutions must be cheap, quiet, and maintainable.
+
+Atmospheric Water Generators (AWG) exist — but almost all of them use a
+vapor-compression refrigeration loop: a compressor, a condenser, an expansion
+valve. That means high peak power, expensive parts, refrigerant gas, noise,
+and a maintenance profile that a rural community cannot sustain.
+
+▸ SEO keywords: atmospheric water generator, AWG, water from air, Brazilian
+  semi-arid, drinking water scarcity, decentralized water supply.
+
+[PT-BR] O compressor é o vilão: é o componente mais caro, mais barulhento e
+mais difícil de consertar num AWG convencional. Nosso primeiro corte de projeto
+foi eliminá-lo — e redesenhar todo o ciclo em volta dessa ausência.
+
+───────────────────────────────────────────────────────────────────────────────
+2 · THE PHYSICS: BORROWING THE NIGHT (a 4-stage chemical-thermal cycle)
+───────────────────────────────────────────────────────────────────────────────
+The semi-arid night is the cheapest "water source" available: relative humidity
+climbs from ~40 % (day) to ~65–70 % (night) while temperature drops. Our cycle
+exploits that diurnal asymmetry with hygroscopic chemistry instead of cold:
+
+▸ STAGE 1 — NOCTURNAL SORPTION (INTAKE)
+  Fans pull night air through a calcium-chloride (CaCl₂) bed. The salt
+  chemically retains water (deliquescence → CaCl₂·nH₂O), kinetically modeled
+  as 1st-order saturation: m(t) = M·q·(1 − e^(−k·t)), capped at M·q ≈ 2 kg.
+
+▸ STAGE 2 — ISOLATION (servo damper)
+  At dawn, a servo motor closes the fresh-air inlet and opens the path to the
+  distillation glassware duct. No back-contamination, no air short-circuit.
+
+▸ STAGE 3 — SOLAR-SYNCHRONOUS REGENERATION (REGEN)
+  A solenoid heater drives the wet salt to ~120 °C (thermostat with ±2 °C
+  hysteresis). Water is released as pure vapor — the salt is not consumed, it
+  is a reversible chemical "sponge".
+
+▸ STAGE 4 — DISTILLATION + POST-TREATMENT → POTABLE BASIN
+  Vapor condenses in recycled laboratory glassware (η ≈ 0.92). The distillate
+  then passes through a mineralizing filter (Ca²⁺ 45 mg/L, Mg²⁺ 18 mg/L —
+  distilled water alone tastes flat and is not an ideal drinking profile) and
+  a UV-C lamp (254 nm, ≥ 40 mJ/cm²) before storage in a 2 L basin with a tap.
+
+The whole chain is compressor-free, refrigerant-free, and pump-free.
+
+[PT-BR] A sacada é usar o Ritmo do dia: o sertão "deseca" de dia e "umedece"
+à noite. A máquina dorme com o clima: captura à noite, destila com o sol.
+Química barata no lugar de mecânica cara.
+
+───────────────────────────────────────────────────────────────────────────────
+3 · THE ENGINEERING: ONE CORE, MANY BODIES (C++23 · Python · IoT)
+───────────────────────────────────────────────────────────────────────────────
+We built a single deterministic simulation core (header-only C++23) and made
+every consumer speak to the same physics:
+
+▸ Native core (tupan_core.hpp): Magnus psychrometrics, sorption kinetics,
+  energy-limited distillation, post-treatment stage; flat-JSON constants
+  loader (O(n) time, O(1) extra memory — no DOM tree); xorshift64* PRNG;
+  Monte Carlo engine parallelized with std::jthread over disjoint ranges.
+
+▸ ML layer: ridge regression (degree 2) trained in streaming fashion on
+  XᵀX/XᵀY accumulators — 500 samples never fully materialize in RAM. We added
+  3 "engineering features" (vapor content ρ_v(T)·UR, bed saturation ratio,
+  release fraction) that give the polynomial the kinks of the real physics.
+  Result: R² = 0.991, RMSE = 0.064 L — physics parity without neural nets.
+
+▸ Data pipeline: pandas + scikit-learn + PyTorch over 14,616 hourly ERA5/
+  Open-Meteo records for Petrolina-PE. Climate finding: mean nocturnal
+  conditions of 68.6 % RH at 24.6 °C → projected 593.8 L/year (≈ 0.97 L/day
+  average, with strong seasonality).
+
+▸ Firmware (Arduino Mega 2560, C++20): MVC + finite state machine
+  (OCIOSO → INTAKE → REGEN → DESTIL → CHEIO/ERRO), zero dynamic Strings
+  (everything F()/PROGMEM), LOG_* console telemetry for every FSM transition,
+  hysteresis thermostat, servo damper control.
+
+▸ Web simulator: Flask + pybind11 binding of the native core (Python fallback
+  mirroring the exact formulas), animated canvas showing air particles → bed →
+  vapor → glassware → basin. Parity test: native 0.689 L vs web 0.691 L
+  per identical cycle.
+
+▸ Interactive studio: the same core drives a Lua-defined UI (sol2) built with
+  Dear ImGui + OpenGL 3.3 over a small hand-rolled linear-algebra layer
+  (`Real=float`, union-backed Mat4). Menus, panels and the 3D scene live in a
+  JSON-like Lua file (assets/studio.lua) — reloadable without recompiling. A
+  headless runner (luaaa) exposes the physics to scripts as `tupan.*`.
+
+▸ Companion app mockups: 6 screens (dashboard, cycle timeline, sensors,
+  controls, history, Bluetooth/MQTT pairing) rendered from executable HTML
+  via headless Chromium — the mockups are specs, not drawings.
+
+[PT-BR] Tudo nasce de um único núcleo físico: o CLI em C++, o studio
+interativo em Lua/ImGui/OpenGL, o simulador web e o firmware contam a MESMA
+história, com os MESMOS números. Auditoria de 35 testes C++ + 21 testes Python,
+todos passando. Entrega em Docker multi-stage com pipeline Jenkins → Kubernetes/VPS.
+
+───────────────────────────────────────────────────────────────────────────────
+4 · THE ENERGY ECONOMICS (Brazilian average tariffs)
+───────────────────────────────────────────────────────────────────────────────
+Per standard cycle (8 h night + 6 h day, ERA5-average conditions):
+
+▸ Solenoid (250 W × 6 h)        1.50 kWh   (89 % of the cycle)
+▸ Fans (7.5 W × 8 h)            0.06 kWh
+▸ Electronics 24 h (5 W)        0.12 kWh
+▸ UV-C (6 W × 0.5 h)            0.003 kWh
+▸ TOTAL                         ≈ 1.68 kWh  →  0.68 L potable  →  2.48 kWh/L
+
+Using the Brazilian average residential tariff (premise R$ 0.95/kWh billed,
+including taxes; ANEEL's tariff ranking spans ~R$ 0.80–1.20/kWh):
+
+▸ Green flag year:            ≈ R$ 584 / year  → R$ 2.36 per liter
+▸ Red flag P2 year:           ≈ R$ 588 / year  → R$ 2.38 per liter
+▸ With Tarifa Social (65 % discount — 51 kWh/month fits the ≤ 80 kWh tier):
+                              ≈ R$ 204 / year  → R$ 0.83 per liter
+
+Honest benchmark: a 20 L bottled-water jug costs ≈ R$ 0.60/L in bulk retail.
+Tupan is NOT cheaper than piped/bottled water where those exist reliably.
+Its value proposition is autonomy: no truck schedule, no supply chain, no
+salinity. And the energy story improves dramatically under photovoltaic
+assistance, where the 1.5 kWh day-stage is a perfect solar load.
+
+[PT-BR] Transparência: o Tupan não compete com a Sabesp nem com o galão de
+20 litros — ele compete com a INCERTEZA. Quando o caminhão-pipa não vem, o
+litro de água não tem preço; quando vem, custa gasolina, fila e tempo.
+
+───────────────────────────────────────────────────────────────────────────────
+5 · THE SCALE TEST: WHAT IF 100,000 TUPANS WERE DEPLOYED? (a warning)
+───────────────────────────────────────────────────────────────────────────────
+Modeling mass adoption is a duty, not a marketing exercise. Consider a
+scenario of N = 100,000 devices running 365 cycles/year:
+
+▸ ANNUAL WATER:        ~24.7 ML/yr (0.68 L × 365 × 100k) — meaningful for
+                       ~100k people at drinking/minimum-hygiene rates, but
+                       statistically IRRELEVANT to any aquifer or river.
+
+▸ ANNUAL ENERGY:       ~61 GWh/yr (1.68 kWh × 365 × 100k).
+                       ⚠️ WARNING 1 — GRID: that is the annual consumption of
+                       ~11,000 Brazilian households. If deployed as a subsidy
+                       program on the conventional grid, it adds peak-evening
+                       demand in poor municipalities. Mitigation is structural,
+                       not optional: PV panel + small battery as the DEFAULT
+                       configuration, turning the day-stage solenoid into a
+                       midday solar load.
+
+▸ SALT & MATERIALS:    CaCl₂ is not consumed but degrades with dust and
+                       impurities. ⚠️ WARNING 2 — WASTE: 100k devices ×
+                       ~2 kg bed replaced every 2–3 years = 70–100 t of spent
+                       salt over a decade. Untreated dumping would salinize
+                       soils — precisely the problem we are solving. A take-
+                       back/regeneration program must be part of any public
+                       policy, not an afterthought. (Recovery by simple re-
+                       drying at > 150 °C re-activates most of the bed mass.)
+
+▸ GLASSWARE & FILTERS: recycled lab glassware is elegant at 1 unit and a
+                       logistics nightmare at 100k. Local fabrication (3D-
+                       printed PLA housings, standardized borosilicate parts)
+                       and a UV-lamp replacement schedule (6 W lamps degrade
+                       below dose in ~9,000 h) are prerequisites.
+
+▸ BEHAVIORAL RISK:     ⚠️ WARNING 3 — TRUST: distilled-then-mineralized water
+                       is safe, but communities will only adopt it with local
+                       water-quality testing and visible maintenance culture.
+                       One contaminated unit in one village can kill the
+                       program's credibility region-wide.
+
+▸ ECONOMIC EQUITY:     ⚠️ WARNING 4 — TARIFF REGRESSION: without Tarifa Social
+                       enrollment or PV support, R$ 2.4/L is regressive — it
+                       would be the poorest households paying the most per
+                       liter of drinking water in Brazil. Any deployment policy
+                       must couple the device to TSEE registration and/or
+                       off-grid energy.
+
+[PT-BR] Advertência central: escala inverte virtudes. Um dispositivo que é
+"limpo" vira 100 t de sal gasto; um ciclo que é "barato para uma família"
+vira 61 GWh de demanda. A conclusão do projeto é sócio-técnica: solarização e
+logística reversa do sal não são acessórios verdes, são condições de contorno
+para que o Tupan não crie o problema que pretende resolver.
+
+───────────────────────────────────────────────────────────────────────────────
+6 · COMPLIANCE SNAPSHOT (why this matters beyond the prototype)
+───────────────────────────────────────────────────────────────────────────────
+A potable-water device in Brazil lives under a dense regulatory stack, and the
+project was designed with that stack in mind from day one:
+
+▸ INMETRO — Portaria 344/2017 (water treatment systems for human consumption):
+  defines the certification route for household water treatment/dispensing
+  equipment, including UV-based systems; a productized Tupan would need type
+  approval by an accredited OPC/RT (testing of microbiological and physical-
+  chemical performance across the declared operating range).
+
+▸ ANVISA — consolidated ordinances on drinking-water potability (Portaria de
+  Consolidação nº 5, Anexo XX; reference parameters of the old Portaria
+  2.914/2011): our post-treatment target profile (Ca 45 mg/L, Mg 18 mg/L,
+  UV-C dose ≥ 40 mJ/cm²) is engineered against those parameter tables.
+
+▸ ABNT NBR 16098 / NBR 15176: household point-of-use treatment devices and
+  water quality sampling — the test protocol skeleton for the academic report.
+
+▸ LGPD (Lei 13.709/2018): the companion app pairs over Bluetooth/MQTT with a
+  unique device ID; no personal data is required to operate the machine, and
+  telemetry is stored locally by design (privacy as architecture, not policy).
+
+▸ Energy: the device operates within ANEEL's tariffed residential class and
+  inside the Tarifa Social eligibility envelope (≤ 80 kWh/month) — a deliberate
+  design constraint, not a coincidence.
+
+[PT-BR] Conformidade não é burocracia: é o que separa "um experimento de
+laboratório" de "um aparelho de água potável". O caminho INMETRO (Portaria
+344) é caro para um protótipo acadêmico — mas o projeto já nasce com a
+arquitetura de conformidade: UV dosimétrica, perfil mineral documentado,
+registro auditável de cada ciclo.
+
+───────────────────────────────────────────────────────────────────────────────
+7 · WHAT WE MEASURED, WHAT WE LEARNED (academic takeaways)
+───────────────────────────────────────────────────────────────────────────────
+▸ Physics beats vibes: the sorption ceiling (M·q) and the energy limit of the
+  solenoid are the two REAL constraints; everything else is second-order.
+  The ML model only became accurate (R² 0.877 → 0.991) after we injected the
+  two kinks of the physics as features — data cannot replace a mechanism.
+
+▸ The climate is the design document: 14,616 h of ERA5 data for ONE city
+  changed the machine (8 h night window, 120 °C regeneration, 2 L basin).
+  Site-specificity is a feature of AWG engineering, not a limitation.
+
+▸ Software architecture is sustainability: one core, five consumers, two
+  test suites, all deterministic and auditable. Reproducibility is the only
+  honest form of "trust me" an academic project can offer.
+
+▸ The device is a policy object: energy source, salt logistics and tariff
+  class decide its social impact more than its airflow does. Engineering
+  education should treat INMETRO/ANVISA/ANEEL as part of the CAD assembly.
+
+[PT-BR] Lição para colegas de engenharia: o protótipo é a parte fácil.
+A parte difícil — e que a disciplina de IoT & PLCs nos obrigou a encarar —
+é o entorno: dados climáticos reais, norma técnica, tarifa de energia e
+comunidade que vai usar a coisa.
+
+───────────────────────────────────────────────────────────────────────────────
+8 · THE INTERACTIVE STUDIO (and how the whole thing ships)
+───────────────────────────────────────────────────────────────────────────────
+A physics core is only as convincing as the tools around it — so we built an
+interactive studio where the interface itself is a Lua script.
+
+▸ The interface is data: menus, panels and the 3D scene are declared in a
+  JSON-like Lua table (assets/studio.lua) and read with sol2. Change the .lua
+  and reload — no recompilation. A menu item literally calls "Reload DSL".
+
+▸ 3D without an engine: GLFW + Dear ImGui + OpenGL 3.3 over a hand-rolled
+  linear-algebra layer (Real = float, and a column-major Mat4 whose `union`
+  exposes both float[16] and Vec4 columns). Fans spin during sorption, the coil
+  glows in regeneration, and the basin level rises with the liters the core
+  actually computes.
+
+▸ Binding in both directions: sol2 reads the declarative UI; luaaa (a
+  single-header C++→Lua binder) exposes the physics as `tupan.*`, so a headless
+  script can sweep humidity and print liters/kWh without opening a window.
+
+▸ Delivery is code too: a multi-stage Docker image (core CLI + gunicorn web
+  with a /health probe) and a Jenkinsfile that builds, tests, regenerates all
+  media, pushes, and deploys — to Kubernetes (Deployment/Service/Ingress/HPA,
+  runAsNonRoot, readiness/liveness probes) or to a plain VPS (systemd + nginx).
+
+[PT-BR] A interface virou script: mudar um painel ou a cena 3D é editar um .lua
+e recarregar. O mesmo núcleo alimenta CLI, studio, web, app e firmware — há um
+só lugar para consertar a verdade. E o pipeline de entrega é reprodutível de
+ponta a ponta, do build ao deploy.
+
+───────────────────────────────────────────────────────────────────────────────
+9 · REPO & NEXT STEPS
+───────────────────────────────────────────────────────────────────────────────
+▸ GitHub: github.com/tuliofh01/Tupan
+  (src/ C++23 core + Lua/ImGui/OpenGL studio + luaaa scripting + Py bindings +
+   firmware; tools/ data pipeline, media, reports; docs/ deliverables/media;
+   data/ contracts; Docker + Jenkins → Kubernetes/VPS — all from source)
+▸ Hardware next: DHT22 + DS18B20 real sensors replacing stubs, HC-05 telemetry
+  bridge, PV-assisted solenoid prototype.
+▸ Regulatory next: ANVISA-parameter bench testing of the mineral+UV stage.
+▸ Reuse this: the whole stack is MIT-licensed academic material.
+
+If you work with water security, appropriate technology, embedded systems or
+public policy for the semi-arid — I want your criticism, especially the
+uncomfortable kind about scale, waste and equity.
+
+───────────────────────────────────────────────────────────────────────────────
+CLOSING LINE (post, don't preach)
+───────────────────────────────────────────────────────────────────────────────
+The rain machine does not make rain. It borrows the night's humidity, pays it
+back with daytime heat, and gives the water a mineral body and a UV-clean
+conscience. 0.68 L per night, 2.48 kWh per liter, 35 C++ tests, 21 Python
+tests, 1 salt that never dies if you treat it right.
+
+#AtmosphericWaterGenerator #AWG #WaterFromAir #SemiArido #WaterSecurity
+#IoT #Arduino #Cpp23 #Lua #OpenGL #DearImGui #Python #MachineLearning
+#Docker #Kubernetes #Jenkins #OpenSource #PUCMinas #EngineeringEducation
+#AppropriateTechnology #Sustentabilidade #AguaPotavel #Sertão #LGPD
+
+═══════════════════════════════════════════════════════════════════════════════
+ APPENDIX A — SEO metadata block (do NOT paste into LinkedIn; for repo/docs)
+═══════════════════════════════════════════════════════════════════════════════
+Title:       Water from air without a compressor: the Tupan rain machine
+Description: A compressor-free atmospheric water generator for the Brazilian
+             semi-arid: nocturnal CaCl₂ sorption, solenoid regeneration,
+             glassware distillation, mineralizing filter + UV-C, 2 L potable
+             basin. C++23/Python/IoT open stack, 14,616 h of ERA5 climate
+             data, energy costs under Brazilian tariffs, and the warnings of
+             mass adoption (grid load, salt waste, equity).
+Keywords:    atmospheric water generator, AWG, water from air, máquina de
+             chuva, água atmosférica, semiárido brasileiro, Petrolina, calcium
+             chloride sorption, desiccant wheel alternative, solenoid heater,
+             distillation glassware, UV-C sterilization 254 nm, mineralizing
+             filter, Arduino Mega C++20 firmware, FSM MVC, pybind11 Flask
+             simulator, ERA5 Open-Meteo, Monte Carlo, INMETRO Portaria 344,
+             ANVISA potability, ANEEL Tarifa Social, LGPD IoT, PUC Minas
+Hashtags:    (see closing line)
+Character budget: body ≈ 14,200 chars — fits LinkedIn's 3,000-char post ONLY
+             as a carousel/PDF; recommended: publish sections 1–4 + 9 as the
+             post, sections 5–8 as a first-comment thread, and the full text
+             as an attached PDF article.
+═══════════════════════════════════════════════════════════════════════════════
+ APPENDIX B — fact sheet used in the text (traceability into the repo)
+═══════════════════════════════════════════════════════════════════════════════
+0.677 L potable/cycle .... data/results/custo_energia.json  (energia_ciclo)
+2.48 kWh/L ............... idem (kwh_por_litro)
+R$ 2.36–2.38/L (grid) .... idem (cenarios_anuais, bandeiras)
+R$ 0.83/L (TSEE 65 %) .... idem (cenarios_anuais, tarifa_social=true)
+61 GWh/yr @ 100k devices . 1.683 kWh × 365 × 100,000
+24.7 ML/yr @ 100k ........ 0.677 L × 365 × 100,000
+70–100 t spent salt ..... 100k × 2 kg bed / 2–3 yr replacement
+R² = 0.991 / RMSE 0.064 .. data/results/metricas_ml.json (ML ridge/MLP)
+593.8 L/yr projection .... data/results/projetoes_tupan.csv (Petrolina ERA5)
+68.6 % RH @ 24.6 °C ...... data/raw/clima_semiarido_petrolina.csv
+35 C++ / 21 Python tests . build/tupan_tests + tools/tests
+UI stack ................. src/studio (Lua/sol2 + ImGui + OpenGL) + src/scripting (luaaa)
+Delivery ................. docker/Dockerfile + ci/Jenkinsfile + deploy/k8s + deploy/vps
+═══════════════════════════════════════════════════════════════════════════════

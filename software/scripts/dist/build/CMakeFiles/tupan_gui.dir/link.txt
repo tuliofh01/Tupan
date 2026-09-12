@@ -1,1 +1,0 @@
-/usr/sbin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/tupan_gui.dir/link.d CMakeFiles/tupan_gui.dir/tupan_gui_autogen/mocs_compilation.cpp.o CMakeFiles/tupan_gui.dir/tupan_gui.cpp.o -o tupan_gui  /usr/lib/libQt5Widgets.so.5.15.18 /usr/lib/libQt5Gui.so.5.15.18 /usr/lib/libQt5Core.so.5.15.18

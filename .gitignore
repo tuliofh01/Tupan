@@ -1,4 +1,20 @@
-.venv/
+# Python
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv/
+venv/
+*.egg-info/
+# Builds nativos (artefatos gerados)
+build/
+build-win/
+build-*/
+dist/
+bin/
+# Dados gerados pesados (mantidos apenas os contratos versionados)
+data/tmp/
+# Sistema/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

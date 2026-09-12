@@ -1,0 +1,130 @@
+// ============================================================================
+//  TUPAN, MÁQUINA DE CHUVA — Pipeline CI/CD (Jenkins, declarativo)
+//  ---------------------------------------------------------------------------
+//  Estágios: Checkout → Build+Teste (C++/Python) → Mídia → Docker →
+//            Push → Deploy (Kubernetes) / VPS.
+//  Credenciais esperadas (Jenkins → Credentials):
+//    - tupan-registry  (username/password do registry Docker)
+//    - tupan-kubeconfig (Secret file com ~/.kube/config)  [opcional]
+//  Parâmetros: DEPLOY (bool), REGISTRY (string), K8S (bool).
+// ============================================================================
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        timeout(time: 60, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Publicar imagem + deploy')
+        booleanParam(name: 'K8S',    defaultValue: true,  description: 'Deploy em Kubernetes (senão VPS)')
+        string(name: 'REGISTRY',     defaultValue: 'ghcr.io/tuliofh', description: 'Registry Docker')
+        string(name: 'K8S_NAMESPACE', defaultValue: 'tupan', description: 'Namespace Kubernetes')
+    }
+
+    environment {
+        IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'local'}"
+        REGISTRY  = "${params.REGISTRY}"
+        DOCKER_BUILDKIT = '1'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh 'git rev-parse --short HEAD || true'
+            }
+        }
+
+        stage('Build & Test (C++/Python)') {
+            steps {
+                sh '''
+                    set -eux
+                    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+                        -DTUPAN_WITH_STUDIO=OFF -DTUPAN_WITH_PYBIND=ON
+                    cmake --build build -j"$(nproc)"
+                    ctest --test-dir build --output-on-failure
+                    python3 -m pip install --quiet -r requirements.txt || true
+                    python3 -m pytest -q tools/tests || true
+                '''
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'build/**/*.xml'
+                }
+            }
+        }
+
+        stage('Mídia / Relatórios') {
+            when { anyOf { branch 'main'; branch 'master' } }
+            steps {
+                sh '''
+                    set -eux
+                    python3 tools/midia/gerar_imagens.py || true
+                    python3 tools/geradores/gerar_relatorio.py || true
+                    python3 tools/geradores/gerar_pitch.py || true
+                '''
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'docs/**', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Docker build') {
+            steps {
+                sh 'docker build -f docker/Dockerfile --target core -t tupan-core:$IMAGE_TAG .'
+                sh 'docker build -f docker/Dockerfile --target web  -t tupan-web:$IMAGE_TAG  .'
+            }
+        }
+
+        stage('Docker push') {
+            when { expression { return params.DEPLOY } }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'tupan-registry',
+                                                  usernameVariable: 'REG_USER',
+                                                  passwordVariable: 'REG_PASS')]) {
+                    sh '''
+                        set -eux
+                        echo "$REG_PASS" | docker login "$REGISTRY" -u "$REG_USER" --password-stdin
+                        docker tag tupan-web:$IMAGE_TAG  $REGISTRY/tupan-web:$IMAGE_TAG
+                        docker tag tupan-web:$IMAGE_TAG  $REGISTRY/tupan-web:latest
+                        docker push $REGISTRY/tupan-web:$IMAGE_TAG
+                        docker push $REGISTRY/tupan-web:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy — Kubernetes') {
+            when { expression { return params.DEPLOY && params.K8S } }
+            steps {
+                withCredentials([file(credentialsId: 'tupan-kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh 'scripts/deploy-k8s.sh --registry "$REGISTRY" --tag "$IMAGE_TAG" --kubeconfig "$KUBECONFIG"'
+                }
+            }
+        }
+
+        stage('Deploy — VPS') {
+            when { expression { return params.DEPLOY && !params.K8S } }
+            steps {
+                sshagent(credentials: ['tupan-vps-ssh']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=accept-new deploy@tupan.exemplo.org \
+                            "sudo systemctl restart tupan-web && systemctl is-active tupan-web"
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success { echo "Pipeline OK — tag ${env.IMAGE_TAG}" }
+        failure { echo "Pipeline FALHOU — verifique os logs dos estágios." }
+        always  { cleanWs() }
+    }
+}

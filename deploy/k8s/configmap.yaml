@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tupan-web-config
+  namespace: tupan
+data:
+  TUPAN_LOG_LEVEL: "INFO"
+  GUNICORN_WORKERS: "2"

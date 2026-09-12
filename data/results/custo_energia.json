@@ -1,0 +1,83 @@
+{
+  "_fonte": "ANEEL — bandeiras tarifárias (R$/MWh: vermelha P1 4,463; P2 7,877) e tarifa residencial média nacional como premissa (R$ 0,95/kWh faturado, inclui tributos). TSEE: 65 % p/ consumo ≤ 80 kWh/mês (Lei 14.541/2023).",
+  "_nativo": true,
+  "premissas": {
+    "tarifa_media_brl_kwh": 0.95,
+    "ciclo": {
+      "noite_h": 8.0,
+      "dia_h": 6.0,
+      "ur_pct": 68.0,
+      "temp_c": 24.0,
+      "vazao_m3h": 25.0,
+      "eficiencia": 0.85,
+      "solenoide_c": 120.0
+    }
+  },
+  "energia_ciclo": {
+    "ventoinhas_kwh": 0.06,
+    "solenoide_kwh": 1.5,
+    "uv_c_kwh": 0.003,
+    "eletronica_kwh": 0.12,
+    "total_kwh": 1.683,
+    "potavel_l": 0.6773,
+    "kwh_por_litro": 2.485
+  },
+  "cenarios_anuais": [
+    {
+      "bandeira": "verde",
+      "tarifa_social": false,
+      "tarifa_brl_kwh": 0.95,
+      "consumo_ano_kwh": 614.3,
+      "consumo_mes_kwh": 51.2,
+      "litros_ano": 247.2,
+      "custo_ano_brl": 583.58,
+      "custo_litro_brl": 2.36
+    },
+    {
+      "bandeira": "vermelha_p1",
+      "tarifa_social": false,
+      "tarifa_brl_kwh": 0.9545,
+      "consumo_ano_kwh": 614.3,
+      "consumo_mes_kwh": 51.2,
+      "litros_ano": 247.2,
+      "custo_ano_brl": 586.32,
+      "custo_litro_brl": 2.37
+    },
+    {
+      "bandeira": "vermelha_p2",
+      "tarifa_social": false,
+      "tarifa_brl_kwh": 0.9579,
+      "consumo_ano_kwh": 614.3,
+      "consumo_mes_kwh": 51.2,
+      "litros_ano": 247.2,
+      "custo_ano_brl": 588.42,
+      "custo_litro_brl": 2.38
+    },
+    {
+      "bandeira": "verde",
+      "tarifa_social": true,
+      "tarifa_brl_kwh": 0.3325,
+      "consumo_ano_kwh": 614.3,
+      "consumo_mes_kwh": 51.2,
+      "litros_ano": 247.2,
+      "custo_ano_brl": 204.25,
+      "custo_litro_brl": 0.83
+    },
+    {
+      "bandeira": "vermelha_p1",
+      "tarifa_social": true,
+      "tarifa_brl_kwh": 0.3341,
+      "consumo_ano_kwh": 614.3,
+      "consumo_mes_kwh": 51.2,
+      "litros_ano": 247.2,
+      "custo_ano_brl": 205.21,
+      "custo_litro_brl": 0.83
+    }
+  ],
+  "comparacao_brl_por_litro": {
+    "tupan_bandeira_verde": 2.36,
+    "tupan_tsee_65pct": 0.83,
+    "galao_20l": 0.6,
+    "garrafinha_500ml": 4.0
+  }
+}

@@ -1,0 +1,26 @@
+# ============================================================================
+#  TUPAN — Imagem Docker -> VPS (systemd + docker)
+#  Instalar:
+#    sudo install -m 644 deploy/vps/tupan-web.service /etc/systemd/system/
+#    sudo systemctl daemon-reload && sudo systemctl enable --now tupan-web
+# ============================================================================
+[Unit]
+Description=Tupan Water Maker — microsserviço web (Flask/gunicorn em Docker)
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker rm -f tupan-web
+ExecStartPre=/usr/bin/docker pull ghcr.io/tuliofh/tupan-web:latest
+ExecStart=/usr/bin/docker run --rm --name tupan-web \
+    -p 127.0.0.1:5000:5000 \
+    -e PYTHONUNBUFFERED=1 \
+    ghcr.io/tuliofh/tupan-web:latest
+ExecStop=/usr/bin/docker stop tupan-web
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+# --- Artefatos de build (recompilados dentro da imagem) ---
+build/
+build-win/
+build-*/
+dist/
+bin/
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+# --- VCS/IDE ---
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+# --- Mídia gerada (não entra na imagem; republicável) ---
+docs/midia/
